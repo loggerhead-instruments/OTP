@@ -1,0 +1,7 @@
+
+*.Zip
+*.PcbDocPreview
+*.SchDocPreview
+*.LOG
+*.drc
+*.html
