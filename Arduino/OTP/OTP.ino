@@ -1,8 +1,9 @@
 #include <SPI.h>
 #include <avr/io.h>
+#include <avr/sleep.h>
+#include <avr/power.h>
 #include <util/delay.h>
 #include <prescaler.h>
-#include <MsTimer2.h>
 
 #define LED 4
 #define PWMPIN 5
@@ -15,7 +16,9 @@
 
 // pulseDelay = 3 for 400 kHz
 // 19 works well for ring piezo (less ringing) determined empirically
-#define pulseDelay 19
+//#define pulseDelay 19
+// 100 is easy to hear
+#define pulseDelay 100
 
 #define DELAY_CYCLES(n) __builtin_avr_delay_cycles(n)
 
@@ -32,14 +35,16 @@ boolean tagID[32] = {0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1
 // default number of channels and sample rate
 // can be changed by setup.txt file
 int nchan = 1;
-int srate = 1600;
+int srate = 800;
 int accelScale = 2;
+
+int16_t threshold = 200; // threshold for storing raw buffer
 
 // when storing magnitude of acceleraton watermark threshold are represented by 1Lsb = 3 samples
 // max buffer is 256 sets of 3-axis data
 #define FIFO_WATERMARK (0x80) // samples 0x0C=12 0x24=36; 0x2A=42; 0x80 = 128
-int bufLength = 128; // samples: 3x watermark
-int16_t accel[384]; // hold up to this many samples
+#define bufLength 384 // samples: 3x watermark
+int16_t accel[bufLength]; // hold up to this many samples
 
 void setup() {
   setClockPrescaler(1); //slow down clock to save battery 4 = 16x slower
@@ -65,22 +70,54 @@ void setup() {
     testResponse = lis2SpiTestResponse();
   }
 
-  DDRD = DDRD | B00100000;
-  MsTimer2::set(50, ping); // 500ms period
-  MsTimer2::start();
+  lis2SpiInit();
 }
 
 
 void loop() {
-
-
+     processBuf(); // process buffer first to empty FIFO so don't miss watermark
+     //if(lis2SpiFifoStatus()==0) system_sleep();
+     //if(lis2SpiFifoPts() < 128) system_sleep();
+     system_sleep();
+     // ... ASLEEP HERE...
 }
-void ping(){
-  static boolean output = HIGH;
-  digitalWrite(LED, output);
-  output = !output;
-  pulsePattern();
-  
+
+
+void processBuf(){
+  while((lis2SpiFifoPts() * 3 > bufLength)){
+    lis2SpiFifoRead(bufLength);  //samples to read
+    if(detectSound()){
+      digitalWrite(LED, HIGH);
+      pulsePattern();
+    }  
+  }
+  digitalWrite(LED, LOW);
+}
+
+
+// simple algorithm to detect whether buffer contains sound
+int16_t maxFiltered = 0;
+int diffData;
+
+boolean detectSound(){
+  // High-pass filter options:
+  // diff()
+  // IIR
+  // FIR
+
+  // Threshold options:
+  // -fixed
+  // -dynamic (e.g. 4 * SD)
+
+  maxFiltered = 0;
+  for (int i=1; i<bufLength; i++){
+    diffData = accel[i] - accel[i-1];
+    if (diffData > maxFiltered) maxFiltered = diffData;
+  }
+  if(maxFiltered > threshold) 
+    return 1;
+  else
+    return 0;
 }
 
 void pulsePattern(){
@@ -99,13 +136,34 @@ void pulseOut(){
   // when use loop, get extra delay for low side
   // when remove loop, don't get an output
   for(int n=0; n<1; n++){
-    sbi(PORTD, 5);
+    sbi(PORTD, PWMPIN);
     DELAY_CYCLES(pulseDelay);
-    cbi(PORTD, 5);
+    cbi(PORTD, PWMPIN);
     DELAY_CYCLES(pulseDelay);
-    sbi(PORTD, 5);
+    sbi(PORTD, PWMPIN);
     DELAY_CYCLES(pulseDelay);
-    cbi(PORTD, 5);
+    cbi(PORTD, PWMPIN);
     DELAY_CYCLES(pulseDelay);
   }
+}
+
+void watermark(){
+  // wake up
+  
+}
+
+//****************************************************************  
+// set system into the sleep state 
+// system wakes up when interrupt detected
+void system_sleep() {
+  // make all pin inputs and enable pullups to reduce power
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN); // sleep mode is set here
+  sleep_enable();
+  power_all_disable();
+  attachInterrupt(digitalPinToInterrupt(INT1), watermark, LOW);
+  sleep_mode();  // go to sleep
+  // ...sleeping here....  
+  sleep_disable();
+  detachInterrupt(digitalPinToInterrupt(INT1));
+  power_all_enable();
 }
