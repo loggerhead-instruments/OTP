@@ -5,6 +5,11 @@
 #include <util/delay.h>
 #include <prescaler.h>
 
+boolean tagID[32] = {0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
+int16_t threshold = 100; // threshold for detecting signal
+uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffer to trigger
+
+
 #define LED 4
 #define PWMPIN 5
 #define DATAOUT 11      //MOSI
@@ -30,15 +35,13 @@
 #define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
 #endif
 
-boolean tagID[32] = {0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
-
 // default number of channels and sample rate
 // can be changed by setup.txt file
 int nchan = 1;
 int srate = 800;
 int accelScale = 2;
 
-int16_t threshold = 200; // threshold for storing raw buffer
+
 
 // when storing magnitude of acceleraton watermark threshold are represented by 1Lsb = 3 samples
 // max buffer is 256 sets of 3-axis data
@@ -96,7 +99,6 @@ void processBuf(){
 
 
 // simple algorithm to detect whether buffer contains sound
-int16_t maxFiltered = 0;
 int diffData;
 
 boolean detectSound(){
@@ -109,12 +111,14 @@ boolean detectSound(){
   // -fixed
   // -dynamic (e.g. 4 * SD)
 
-  maxFiltered = 0;
+  uint16_t nGtThreshold = 0;
   for (int i=1; i<bufLength; i++){
     diffData = accel[i] - accel[i-1];
-    if (diffData > maxFiltered) maxFiltered = diffData;
+    if (diffData > threshold){
+      nGtThreshold += 1;
+    }
   }
-  if(maxFiltered > threshold) 
+  if(nGtThreshold > thresholdCount) 
     return 1;
   else
     return 0;
