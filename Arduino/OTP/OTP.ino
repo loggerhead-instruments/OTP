@@ -24,7 +24,7 @@ uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffe
 //#define pulseDelay 19
 // 100 is easy to hear
 // 200 is 100 microsecond period
-#define chargeDelay 200
+#define chargeDelay 150
 
 #define DELAY_CYCLES(n) __builtin_avr_delay_cycles(n)
 
