@@ -1,4 +1,4 @@
-#include <SPI.h>
+#include <SPI.h>    // arduino pro/pro mini, AtMega 3.3V 8 MHz
 #include <avr/io.h>
 #include <avr/sleep.h>
 #include <avr/power.h>
@@ -37,6 +37,7 @@ uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffe
 
 // default number of channels and sample rate
 // can be changed by setup.txt file
+// change lis2SpiFifoRead if choosing sample rate combo of 12 bit acc data
 int nchan = 1;
 int srate = 800;
 int accelScale = 2;
@@ -49,8 +50,9 @@ int accelScale = 2;
 #define bufLength 384 // samples: 3x watermark
 int16_t accel[bufLength]; // hold up to this many samples
 
+
 void setup() {
-  setClockPrescaler(1); //slow down clock to save battery 4 = 16x slower
+  setClockPrescaler(1); //slow down clock to save battery 4 = 16x slower // makes 4 MHz clock
   pinMode(PWMPIN, OUTPUT); // output pin for OCR0B
   pinMode(LED, OUTPUT);
   
@@ -135,7 +137,7 @@ void pulsePattern(){
 }
 
 void pulseOut(){
-  // make a pulse of 4 cycles
+  // make a pulse of 2 cycles
   // using 3 cycle delay makes a 400 kHz square wave
   // when use loop, get extra delay for low side
   // when remove loop, don't get an output
