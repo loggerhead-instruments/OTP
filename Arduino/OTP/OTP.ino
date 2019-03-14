@@ -5,8 +5,6 @@
 #include <util/delay.h>
 #include <prescaler.h>
 
-//test
-
 boolean tagID[32] = {0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
 int16_t threshold = 100; // threshold for detecting signal
 uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffer to trigger
@@ -25,7 +23,8 @@ uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffe
 // 19 works well for ring piezo (less ringing) determined empirically
 //#define pulseDelay 19
 // 100 is easy to hear
-#define pulseDelay 100
+// 200 is 100 microsecond period
+#define chargeDelay 200
 
 #define DELAY_CYCLES(n) __builtin_avr_delay_cycles(n)
 
@@ -43,8 +42,6 @@ uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffe
 int nchan = 1;
 int srate = 800;
 int accelScale = 2;
-
-
 
 // when storing magnitude of acceleraton watermark threshold are represented by 1Lsb = 3 samples
 // max buffer is 256 sets of 3-axis data
@@ -68,8 +65,8 @@ void setup() {
   SPI.begin();
   SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0)); // with breadboard, speeds higher than 1MHz fail
 
-  int testResponse = lis2SpiTestResponse();
-  while (testResponse != 67) {
+  int testResponse = lis2SpiTestResponse(); // test if we can read from accelerometer
+  while (testResponse != 67) {              // alert user that accelerometer does not work
     delay(100);
     digitalWrite(LED, HIGH);
     delay(100);
@@ -82,7 +79,12 @@ void setup() {
 
 
 void loop() {
-     processBuf(); // process buffer first to empty FIFO so don't miss watermark
+  
+     // processBuf(); // process buffer first to empty FIFO so don't miss watermark
+     // Let's just pulse away
+     pulseOut();
+     delay(100);
+     
      //if(lis2SpiFifoStatus()==0) system_sleep();
      //if(lis2SpiFifoPts() < 128) system_sleep();
      system_sleep();
@@ -145,13 +147,8 @@ void pulseOut(){
   // when remove loop, don't get an output
   for(int n=0; n<1; n++){
     sbi(PORTD, PWMPIN);
-    DELAY_CYCLES(pulseDelay);
+    DELAY_CYCLES(chargeDelay);
     cbi(PORTD, PWMPIN);
-    DELAY_CYCLES(pulseDelay);
-    sbi(PORTD, PWMPIN);
-    DELAY_CYCLES(pulseDelay);
-    cbi(PORTD, PWMPIN);
-    DELAY_CYCLES(pulseDelay);
   }
 }
 
