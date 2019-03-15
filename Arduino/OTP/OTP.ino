@@ -24,7 +24,9 @@ uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffe
 //#define pulseDelay 19
 // 100 is easy to hear
 // 200 is 100 microsecond period
-#define chargeDelay 150
+// 28 cycles at 4 MHz corresponds to half a period of a 70 kHz tone
+// #define delayCycles 25
+#define delayCycles 7
 
 #define DELAY_CYCLES(n) __builtin_avr_delay_cycles(n)
 
@@ -141,14 +143,15 @@ void pulsePattern(){
 }
 
 void pulseOut(){
-  // make a pulse of 2 cycles
+  // make a pulse of 10 cycles
   // using 3 cycle delay makes a 400 kHz square wave
   // when use loop, get extra delay for low side
   // when remove loop, don't get an output
-  for(int n=0; n<1; n++){
+  for(int n=0; n<10; n++){
     sbi(PORTD, PWMPIN);
-    DELAY_CYCLES(chargeDelay);
+    DELAY_CYCLES(delayCycles);
     cbi(PORTD, PWMPIN);
+    DELAY_CYCLES(delayCycles);
   }
 }
 
