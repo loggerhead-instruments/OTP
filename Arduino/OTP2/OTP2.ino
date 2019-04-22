@@ -144,6 +144,13 @@ void pulseOut(){
   // using 3 cycle delay makes a 400 kHz square wave
   // when use loop, get extra delay for low side
   // when remove loop, don't get an output
+
+  // CHG
+    sbi(PORTD, CHG);
+    DELAY_CYCLES(pulseDelay);
+    cbi(PORTD, CHG);
+    DELAY_CYCLES(pulseDelay);
+  
   for(int n=0; n<1; n++){
     sbi(PORTD, PWMPIN);
     DELAY_CYCLES(pulseDelay);
