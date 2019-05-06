@@ -23,9 +23,11 @@ uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffe
 
 // pulseDelay = 3 for 400 kHz
 // 19 works well for ring piezo (less ringing) determined empirically
-//#define pulseDelay 19
+// 11 cycles per half-cycle of a 182 kHz sine wave - at 4 MHz
+// 13 cycles per half-cycle of a 154 kHz sine wave - at 4 MHz (157 kHz piezo)
+// 16 cycles per half-cycle of a 125 kHz sine wave - at 4 MHz (127 kHz piezo)
 // 100 is easy to hear
-#define pulseDelay 100
+#define pulseDelay 13
 
 #define DELAY_CYCLES(n) __builtin_avr_delay_cycles(n)
 
