@@ -6,7 +6,7 @@
 #include <prescaler.h>
 
 boolean tagID[32] = {0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
-int16_t threshold = 100; // threshold for detecting signal
+int16_t threshold = 0; // threshold for detecting signal
 uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffer to trigger
 
 
