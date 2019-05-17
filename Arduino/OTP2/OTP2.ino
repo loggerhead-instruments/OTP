@@ -6,7 +6,7 @@
 #include <prescaler.h>
 
 boolean tagID[32] = {0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
-int16_t threshold = 0; // threshold for detecting signal
+int16_t threshold = 100; // threshold for detecting signal
 uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffer to trigger
 
 
@@ -24,12 +24,21 @@ uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffe
 // pulseDelay = 3 for 400 kHz
 // 19 works well for ring piezo (less ringing) determined empirically
 // 11 cycles per half-cycle of a 182 kHz sine wave - at 4 MHz
-// 13 cycles per half-cycle of a 154 kHz sine wave - at 4 MHz (157 kHz piezo)
+// 13 cycles per half-cycle of a 154 kHz sine wave - at 4 MHz (157 kHz piezo) - NO, this is 111 kHz
 // 16 cycles per half-cycle of a 125 kHz sine wave - at 4 MHz (127 kHz piezo)
 // 100 is easy to hear
-#define pulseDelay 13
 
+// Define individual pulse settings
 #define DELAY_CYCLES(n) __builtin_avr_delay_cycles(n)
+#define chargeDelay 100 // charging right now does not affect stimulus amplitude
+#define pulseOnDelay 12 // slightly higher on versus off balance increases stimulus amplitude
+#define pulseOffDelay 4
+
+// Define bit settings
+#define numBits 32   // Number of bits for ID signal
+//#define bitCycles 10 // Number of sine waves per bit
+#define bitShift 8   // Number of clock cycles for phase shift
+#define bitInt 0     // Number of clock cycles between bits
 
 // defines for setting and clearing register bits
 #ifndef cbi
@@ -52,7 +61,8 @@ int accelScale = 2;
 #define bufLength 384 // samples: 3x watermark
 int16_t accel[bufLength]; // hold up to this many samples
 
-
+int bitCycles = 10; // Number of sine waves per bit
+  
 void setup() {
   setClockPrescaler(1); //slow down clock to save battery 4 = 16x slower // makes 4 MHz clock
   pinMode(PWMPIN, OUTPUT); // output pin for OCR0B
@@ -77,19 +87,53 @@ void setup() {
     digitalWrite(LED, HIGH);
     delay(100);
     digitalWrite(LED, LOW);
+
     testResponse = lis2SpiTestResponse();
   }
 
   lis2SpiInit();
+
+  // LED sequence for successful start: 3 medium, 1 long flash
+  for(int i=0; i<3; i++) {
+    delay(300);
+    digitalWrite(LED, HIGH);
+    delay(300);
+    digitalWrite(LED, LOW);
+  }
+  delay(300);
+  digitalWrite(LED, HIGH);
+  delay(1000);
+  digitalWrite(LED, LOW);
 }
 
 
 void loop() {
+
+    // ESL free-field measurement protocol
+    //delay(1000);
+     
+    // 1: Individual pulses
+    //pulseOut();
+    //delay(1000);
+
+    // 2: Pulse patterns
+    pulsePattern();
+    //delay(1000);
+
+     //deactivated to troubleshoot
      processBuf(); // process buffer first to empty FIFO so don't miss watermark
-     //if(lis2SpiFifoStatus()==0) system_sleep();
-     //if(lis2SpiFifoPts() < 128) system_sleep();
-     system_sleep();
+     
+     if(lis2SpiFifoStatus()==0) system_sleep();
+     if(lis2SpiFifoPts() < 128) system_sleep();
+
+     //deactivated to troubleshoot
+     //system_sleep();
      // ... ASLEEP HERE...
+
+    //delay(100);
+    //digitalWrite(LED, HIGH);
+    //delay(100);
+    //digitalWrite(LED, LOW);
 }
 
 
@@ -132,36 +176,36 @@ boolean detectSound(){
 }
 
 void pulsePattern(){
-  // 32-bit code
-  for(int i=0; i<32; i++){
-    pulseOut();
-    for(int k=0; k<2*(tagID[i]+1); k++){
-       DELAY_CYCLES(100);
+  // 32-bit code tagID
+  for(int i=0; i<numBits; i++){
+    if (tagID[i]) {
+      DELAY_CYCLES(bitShift); // Phase shifted by bitShift cycles
+      pulseOut();
     }
+    else {
+      pulseOut();  
+      DELAY_CYCLES(bitShift);
+    }
+  DELAY_CYCLES(bitInt);
   }
 }
 
 void pulseOut(){
-  // make a pulse of 2 cycles
+  // make a pulse of bitCycles cycles
   // using 3 cycle delay makes a 400 kHz square wave
   // when use loop, get extra delay for low side
   // when remove loop, don't get an output
 
-  // CHG
-    sbi(PORTD, CHG);
-    DELAY_CYCLES(pulseDelay);
-    cbi(PORTD, CHG);
-    DELAY_CYCLES(pulseDelay);
-  
-  for(int n=0; n<1; n++){
+  // CHG DOESN'T SEEM TO WORK
+  //  sbi(PORTD, CHG);
+  //  DELAY_CYCLES(chargeDelay);
+  //  cbi(PORTD, CHG);
+    
+  for(int n=0; n<bitCycles; n++){
     sbi(PORTD, PWMPIN);
-    DELAY_CYCLES(pulseDelay);
+    DELAY_CYCLES(pulseOnDelay);
     cbi(PORTD, PWMPIN);
-    DELAY_CYCLES(pulseDelay);
-    sbi(PORTD, PWMPIN);
-    DELAY_CYCLES(pulseDelay);
-    cbi(PORTD, PWMPIN);
-    DELAY_CYCLES(pulseDelay);
+    DELAY_CYCLES(pulseOffDelay);
   }
 }
 
