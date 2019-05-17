@@ -6,7 +6,7 @@
 #include <prescaler.h>
 
 boolean tagID[32] = {0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
-int16_t threshold = 100; // threshold for detecting signal
+int16_t threshold = 10; // threshold for detecting signal
 uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffer to trigger
 
 
@@ -36,7 +36,7 @@ uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffe
 
 // Define bit settings
 #define numBits 32   // Number of bits for ID signal
-//#define bitCycles 10 // Number of sine waves per bit
+#define bitCycles 10 // Number of sine waves per bit
 #define bitShift 8   // Number of clock cycles for phase shift
 #define bitInt 0     // Number of clock cycles between bits
 
@@ -60,8 +60,6 @@ int accelScale = 2;
 #define FIFO_WATERMARK (0x80) // samples 0x0C=12 0x24=36; 0x2A=42; 0x80 = 128
 #define bufLength 384 // samples: 3x watermark
 int16_t accel[bufLength]; // hold up to this many samples
-
-int bitCycles = 10; // Number of sine waves per bit
   
 void setup() {
   setClockPrescaler(1); //slow down clock to save battery 4 = 16x slower // makes 4 MHz clock
@@ -117,7 +115,7 @@ void loop() {
     //delay(1000);
 
     // 2: Pulse patterns
-    pulsePattern();
+    //pulsePattern();
     //delay(1000);
 
      //deactivated to troubleshoot
