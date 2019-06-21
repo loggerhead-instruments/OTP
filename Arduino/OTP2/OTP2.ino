@@ -5,7 +5,8 @@
 #include <util/delay.h>
 #include <prescaler.h>
 
-boolean tagID[32] = {0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
+//boolean tagID[32] = {0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
+boolean tagID[4] = {0,1,0,1};
 int16_t threshold = 100; // threshold for detecting signal
 uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffer to trigger
 
@@ -30,12 +31,12 @@ uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffe
 
 // Define individual pulse settings
 #define DELAY_CYCLES(n) __builtin_avr_delay_cycles(n)
-#define chargeDelay 100 // charging right now does not affect stimulus amplitude
+#define chargeDelay 2 // charging right now does not affect stimulus amplitude
 #define pulseOnDelay 12 // slightly higher on versus off balance increases stimulus amplitude
-#define pulseOffDelay 4
+#define pulseOffDelay 4 // 12:4 is for app 160 kHz
 
 // Define bit settings
-#define numBits 32   // Number of bits for ID signal
+#define numBits 4   // Number of bits for ID signal
 //#define bitCycles 10 // Number of sine waves per bit
 #define bitShift 8   // Number of clock cycles for phase shift
 #define bitInt 0     // Number of clock cycles between bits
@@ -118,7 +119,39 @@ void loop() {
       delay(1000);
     }
 
-    // 2: Test number of cycles per bit
+    delay(2000);
+    
+    // 2: Individual pulses with charge
+    for (int j1=0; j1<10; j1++){
+
+      for (int j2=0; j2<10; j2++) {
+        sbi(PORTD, CHG);
+        DELAY_CYCLES(chargeDelay);
+        cbi(PORTD, CHG);
+        DELAY_CYCLES(chargeDelay);
+      }
+      pulseOut();
+      delay(1000);
+    }
+
+    delay(2000);
+    
+    // 2: Individual pulses with charge
+    for (int j1=0; j1<10; j1++){
+
+      for (int j2=0; j2<100; j2++) {
+        sbi(PORTD, CHG);
+        DELAY_CYCLES(chargeDelay);
+        cbi(PORTD, CHG);
+        DELAY_CYCLES(chargeDelay);
+      }
+      pulseOut();
+      delay(1000);
+    }
+    
+    delay(2000);
+      
+    // 3: Test number of cycles per bit
     for (int jj=0; jj<10; jj++) {
       bitCycles = (jj+1)*2;
       for (int j1=0; j1<10; j1++){
@@ -145,7 +178,7 @@ void loop() {
      //if(lis2SpiFifoPts() < 128) system_sleep();
 
      //deactivated to troubleshoot
-     system_sleep();
+     //system_sleep();
      // ... ASLEEP HERE...
 }
 
