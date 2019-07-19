@@ -1,0 +1,10 @@
+Output: Generates pick and place files
+Type  : Pick Place
+From  : Variant [[No Variations]] of Project [OTP3.PrjPCB]
+   Generated File[Pick Place for OTP3.csv]
+
+
+Files Generated   : 1
+Documents Printed : 0
+
+Finished Output Generation At 3:06:57 PM On 5/23/2019

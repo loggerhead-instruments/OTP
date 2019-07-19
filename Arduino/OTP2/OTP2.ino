@@ -27,7 +27,8 @@ uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffe
 // 13 cycles per half-cycle of a 154 kHz sine wave - at 4 MHz (157 kHz piezo)
 // 16 cycles per half-cycle of a 125 kHz sine wave - at 4 MHz (127 kHz piezo)
 // 100 is easy to hear
-#define pulseDelay 13
+#define pulseDelay 17
+#define offDelay 0
 
 #define DELAY_CYCLES(n) __builtin_avr_delay_cycles(n)
 
@@ -59,6 +60,18 @@ void setup() {
   pinMode(CHG, OUTPUT);
   pinMode(LED, OUTPUT);
   pinMode(IR, INPUT);
+
+  digitalWrite(CHG, LOW);
+
+
+//// https://www.eprojectszone.com/how-to-modify-the-pwm-frequency-on-the-arduino-part1/
+//TCCR0A=0;//reset the register
+//TCCR0B=0;//reset tthe register
+//TCCR0A=0b00110011;// fast pwm mode on pin 5 (COM0B1)
+////TCCR0B=0b00000010;// prescaler 8
+//TCCR0B=0b00001001;// no prescaler; WGM02 is 1 (toggle Oc0A on Compare Match)
+//OCR0A=72; // 4 MHz/72 = 55.5 kHz
+////OCR0A=255;  // 4 MHz/255 (largest value because 8-bit timer) = 15.6 kHz
   
   
   // initalize the  data ready and chip select pins:
@@ -81,14 +94,18 @@ void setup() {
   }
 
   lis2SpiInit();
+  
 }
 
 
 void loop() {
-     processBuf(); // process buffer first to empty FIFO so don't miss watermark
-     //if(lis2SpiFifoStatus()==0) system_sleep();
-     //if(lis2SpiFifoPts() < 128) system_sleep();
-     system_sleep();
+     //processBuf(); // process buffer first to empty FIFO so don't miss watermark
+     //system_sleep();
+
+     pulseOut();
+     //DELAY_CYCLES(2000);
+     delay(100);
+     
      // ... ASLEEP HERE...
 }
 
@@ -98,7 +115,8 @@ void processBuf(){
     lis2SpiFifoRead(bufLength);  //samples to read
     if(detectSound()){
       digitalWrite(LED, HIGH);
-      pulsePattern();
+     // pulsePattern();
+      pulseOut();
     }  
   }
   digitalWrite(LED, LOW);
@@ -142,27 +160,71 @@ void pulsePattern(){
 }
 
 void pulseOut(){
-  // make a pulse of 2 cycles
-  // using 3 cycle delay makes a 400 kHz square wave
-  // when use loop, get extra delay for low side
-  // when remove loop, don't get an output
+  // PWM
+  // when tried this got random bursts 
+//  TCCR0A=0;//reset the register
+//  TCCR0B=0;//reset the register
+//  TCCR0A=0b00110011;// fast pwm mode on pin 5 (COM0B1)
+//  TCCR0B=0b00001001;// no prescaler; WGM02 is 1 (toggle Oc0A on Compare Match)
+//  OCR0A=23; // 4 MHz/72 = 55.5 kHz; 4 MHz/23 = 173.9 kHz
+//
+//  DELAY_CYCLES(20);
+//
+//  TCCR0A=0;//reset the register
+//  TCCR0B=0;//reset the register
 
-  // CHG
-    sbi(PORTD, CHG);
-    DELAY_CYCLES(pulseDelay);
-    cbi(PORTD, CHG);
-    DELAY_CYCLES(pulseDelay);
   
-  for(int n=0; n<1; n++){
+  
+// CHG
+// This does not seem to have any effect on output level
+//    sbi(PORTD, CHG);
+//    DELAY_CYCLES(2000);
+//    cbi(PORTD, CHG);
+
+
+  // when use loop, get extra delay
+  // amplitude is higher when pulseDelay is longer
+  // amplitude is highest when offDelay is 0 (up to 40V)
+  
     sbi(PORTD, PWMPIN);
     DELAY_CYCLES(pulseDelay);
     cbi(PORTD, PWMPIN);
-    DELAY_CYCLES(pulseDelay);
+    DELAY_CYCLES(offDelay);
+
     sbi(PORTD, PWMPIN);
     DELAY_CYCLES(pulseDelay);
     cbi(PORTD, PWMPIN);
+    DELAY_CYCLES(offDelay);
+      
+    sbi(PORTD, PWMPIN);
     DELAY_CYCLES(pulseDelay);
-  }
+    cbi(PORTD, PWMPIN);
+    DELAY_CYCLES(offDelay);
+
+    sbi(PORTD, PWMPIN);
+    DELAY_CYCLES(pulseDelay);
+    cbi(PORTD, PWMPIN);
+    DELAY_CYCLES(offDelay);
+      
+    sbi(PORTD, PWMPIN);
+    DELAY_CYCLES(pulseDelay);
+    cbi(PORTD, PWMPIN);
+    DELAY_CYCLES(offDelay);
+
+    sbi(PORTD, PWMPIN);
+    DELAY_CYCLES(pulseDelay);
+    cbi(PORTD, PWMPIN);
+    DELAY_CYCLES(offDelay);
+      
+    sbi(PORTD, PWMPIN);
+    DELAY_CYCLES(pulseDelay);
+    cbi(PORTD, PWMPIN);
+    DELAY_CYCLES(offDelay);
+
+    sbi(PORTD, PWMPIN);
+    DELAY_CYCLES(pulseDelay);
+    cbi(PORTD, PWMPIN);
+    DELAY_CYCLES(offDelay);
 }
 
 void watermark(){
