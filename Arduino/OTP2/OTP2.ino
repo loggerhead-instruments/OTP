@@ -6,7 +6,7 @@
 #include <prescaler.h>
 
 //boolean tagID[32] = {0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
-boolean tagID[4] = {0,1,0,1};
+boolean tagID[8] = {0,0,0,0,0,0,0,0};
 int16_t threshold = 100; // threshold for detecting signal
 uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffer to trigger
 
@@ -32,12 +32,14 @@ uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffe
 // Define individual pulse settings
 #define DELAY_CYCLES(n) __builtin_avr_delay_cycles(n)
 #define chargeDelay 2 // charging right now does not affect stimulus amplitude
-#define pulseOnDelay 12 // slightly higher on versus off balance increases stimulus amplitude
-#define pulseOffDelay 4 // 12:4 is for app 160 kHz
+#define pulseOnDelay 16 // slightly higher on versus off balance increases stimulus amplitude
+#define pulseOnDelayB 17 // Alternative pulseOn duration for FSK encoding
+#define pulseOffDelay 0 // 12:4 is for app 160 kHz; 12:2 is for app 177 kHz
+
 
 // Define bit settings
-#define numBits 4   // Number of bits for ID signal
-//#define bitCycles 10 // Number of sine waves per bit
+#define numBits 8   // Number of bits for ID signal
+#define bitCycles 40 // Number of sine waves per bit
 #define bitShift 8   // Number of clock cycles for phase shift
 #define bitInt 0     // Number of clock cycles between bits
 
@@ -61,8 +63,6 @@ int accelScale = 2;
 #define FIFO_WATERMARK (0x80) // samples 0x0C=12 0x24=36; 0x2A=42; 0x80 = 128
 #define bufLength 384 // samples: 3x watermark
 int16_t accel[bufLength]; // hold up to this many samples
-
-int bitCycles = 10; // Number of sine waves per bit
   
 void setup() {
   setClockPrescaler(1); //slow down clock to save battery 4 = 16x slower // makes 4 MHz clock
@@ -110,57 +110,151 @@ void setup() {
 
 void loop() {
 
+    // Semideep tank:
+    // Individual pulses
+    //pulseOut();
+    //delay(400);
+
+    // Semideep tank:
+    // Individual pulses with charge (chargeDelay 2 and 10 tried)
+    //for (int j2=0; j2<100; j2++) {
+    //    sbi(PORTD, CHG);
+    //    DELAY_CYCLES(chargeDelay);
+    //    cbi(PORTD, CHG);
+    //    DELAY_CYCLES(chargeDelay);
+    //}
+    //pulseOut();
+    //delay(400);
+
+    // Semideep tank: PulsePattern
+    //pulsePattern();
+    //delay(400);
+
+    // Eel Pond ID encoding
+
+    // Start Transmission
+    delay(1000);
+    pulseOutMarker();
+    delay(100);
+    pulseOutMarker();
+    delay(100);
+    pulseOutMarker();
+    delay(1000);
+    
+    // 1: BPSK
+    for (int j=0; j<50; j++){
+      
+      //tagID = {0,0,0,0,0,0,0,0};
+      for (int j1=0; j1<8; j1++){
+        tagID[j1] = 0;
+      }
+      digitalWrite(LED, HIGH);
+      pulsePattern();
+      delay(300);
+      digitalWrite(LED, LOW);
+
+      //tagID = {0,0,0,0,1,1,1,1};
+      for (int j1=4; j1<8; j1++){
+        tagID[j1] = 1;
+      } 
+      pulsePattern();
+      delay(300);
+
+      //tagID = {1,1,1,1,1,1,1,1};
+      for (int j1=0; j1<8; j1++){
+        tagID[j1] = 1;
+      } 
+      pulsePattern();
+      delay(400);
+    }
+   
+
+    // Switch transmission
+    delay(1000);
+    pulseOutMarker();
+    delay(100);
+    pulseOutMarker();
+    delay(1000);
+
+    // 2: FSK
+    for (int j=0; j<50; j++){
+      
+      //tagID = {0,0,0,0,0,0,0,0};
+      for (int j1=0; j1<8; j1++){
+        tagID[j1] = 0;
+      }
+      digitalWrite(LED, HIGH);
+      pulsePatternFSK();
+      delay(300);
+      digitalWrite(LED, LOW);
+
+      //tagID = {0,0,0,0,1,1,1,1};
+      for (int j1=4; j1<8; j1++){
+        tagID[j1] = 1;
+      } 
+      pulsePatternFSK();
+      delay(300);
+
+      //tagID = {1,1,1,1,1,1,1,1};
+      for (int j1=0; j1<8; j1++){
+        tagID[j1] = 1;
+      } 
+      pulsePatternFSK();
+      delay(400);
+    }
+
+    
     // ESL free-field measurement protocol
-    delay(5000);
+    //delay(5000);
      
     // 1: Individual pulses
-    for (int j1=0; j1<10; j1++){
-      pulseOut();
-      delay(1000);
-    }
+    //for (int j1=0; j1<10; j1++){
+    //  pulseOut();
+    //  delay(1000);
+    //}
 
-    delay(2000);
+    //delay(2000);
     
     // 2: Individual pulses with charge
-    for (int j1=0; j1<10; j1++){
+    //for (int j1=0; j1<10; j1++){
+    //
+    //  for (int j2=0; j2<10; j2++) {
+    //    sbi(PORTD, CHG);
+    //    DELAY_CYCLES(chargeDelay);
+    //    cbi(PORTD, CHG);
+    //    DELAY_CYCLES(chargeDelay);
+    //  }
+    //  pulseOut();
+    //  delay(1000);
+    //}
 
-      for (int j2=0; j2<10; j2++) {
-        sbi(PORTD, CHG);
-        DELAY_CYCLES(chargeDelay);
-        cbi(PORTD, CHG);
-        DELAY_CYCLES(chargeDelay);
-      }
-      pulseOut();
-      delay(1000);
-    }
-
-    delay(2000);
+    //delay(2000);
     
     // 2: Individual pulses with charge
-    for (int j1=0; j1<10; j1++){
-
-      for (int j2=0; j2<100; j2++) {
-        sbi(PORTD, CHG);
-        DELAY_CYCLES(chargeDelay);
-        cbi(PORTD, CHG);
-        DELAY_CYCLES(chargeDelay);
-      }
-      pulseOut();
-      delay(1000);
-    }
+    //for (int j1=0; j1<10; j1++){
+    //
+    //  for (int j2=0; j2<100; j2++) {
+    //    sbi(PORTD, CHG);
+    //    DELAY_CYCLES(chargeDelay);
+    //    cbi(PORTD, CHG);
+    //    DELAY_CYCLES(chargeDelay);
+    //  }
+    //  pulseOut();
+    //  delay(1000);
+    //}
     
-    delay(2000);
+    //delay(2000);
       
     // 3: Test number of cycles per bit
-    for (int jj=0; jj<10; jj++) {
-      bitCycles = (jj+1)*2;
-      for (int j1=0; j1<10; j1++){
-        pulsePattern();
-        delay(1000);
-      } 
-    }
-    delay(5000);
-    bitCycles = 10;
+    //for (int jj=0; jj<10; jj++) {
+    //  bitCycles = (jj+1)*2;
+    //  for (int j1=0; j1<10; j1++){
+    //    pulsePattern();
+    //    delay(1000);
+    //  } 
+    //}
+    //delay(5000);
+    //bitCycles = 10;
     
 
 
@@ -241,11 +335,6 @@ void pulseOut(){
   // using 3 cycle delay makes a 400 kHz square wave
   // when use loop, get extra delay for low side
   // when remove loop, don't get an output
-
-  // CHG DOESN'T SEEM TO WORK
-  //  sbi(PORTD, CHG);
-  //  DELAY_CYCLES(chargeDelay);
-  //  cbi(PORTD, CHG);
     
   for(int n=0; n<bitCycles; n++){
     sbi(PORTD, PWMPIN);
@@ -254,6 +343,42 @@ void pulseOut(){
     DELAY_CYCLES(pulseOffDelay);
   }
 }
+
+// FSK ENCODING
+
+void pulsePatternFSK(){
+  // 32-bit code tagID
+  for(int i=0; i<numBits; i++){
+    if (tagID[i]) {
+      pulseOut();
+    }
+    else {
+      pulseOutB();  
+    }
+  DELAY_CYCLES(bitInt);
+  }
+}
+
+void pulseOutB(){
+    
+  for(int n=0; n<bitCycles; n++){
+    sbi(PORTD, PWMPIN);
+    DELAY_CYCLES(pulseOnDelayB);
+    cbi(PORTD, PWMPIN);
+    DELAY_CYCLES(pulseOffDelay);
+  }
+}
+
+void pulseOutMarker(){
+    
+  for(int n=0; n<6400; n++){
+    sbi(PORTD, PWMPIN);
+    DELAY_CYCLES(pulseOnDelay);
+    cbi(PORTD, PWMPIN);
+    DELAY_CYCLES(pulseOffDelay);
+  }
+}
+
 
 void watermark(){
   // wake up
