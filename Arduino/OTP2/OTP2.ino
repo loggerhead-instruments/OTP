@@ -27,8 +27,8 @@ uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffe
 // 13 cycles per half-cycle of a 154 kHz sine wave - at 4 MHz (157 kHz piezo)
 // 16 cycles per half-cycle of a 125 kHz sine wave - at 4 MHz (127 kHz piezo)
 // 100 is easy to hear
-#define pulseDelay 17
-#define offDelay 0
+#define pulseDelay 26
+#define offDelay 2
 
 #define DELAY_CYCLES(n) __builtin_avr_delay_cycles(n)
 
@@ -103,7 +103,6 @@ void loop() {
      //system_sleep();
 
      pulseOut();
-     //DELAY_CYCLES(2000);
      delay(100);
      
      // ... ASLEEP HERE...
