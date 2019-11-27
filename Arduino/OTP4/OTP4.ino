@@ -5,10 +5,11 @@
 #include <util/delay.h>
 #include <prescaler.h>
 
-boolean tagID[32] = {0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
+boolean tagID[32] = {0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
 int16_t threshold = 100; // threshold for detecting signal
 uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffer to trigger
-
+uint8_t pulse;
+boolean firstPulse = 1;
 
 #define LED A2
 #define PWMPIN 3
@@ -18,16 +19,6 @@ uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffe
 #define chipSelectPinAccel 9  
 #define INT1 2
 
-// pulseDelay = 3 for 400 kHz
-// 19 works well for ring piezo (less ringing) determined empirically
-// 11 cycles per half-cycle of a 182 kHz sine wave - at 4 MHz
-// 13 cycles per half-cycle of a 154 kHz sine wave - at 4 MHz (157 kHz piezo)
-// 16 cycles per half-cycle of a 125 kHz sine wave - at 4 MHz (127 kHz piezo)
-// 100 is easy to hear
-#define pulseDelay 26
-#define offDelay 2
-
-#define DELAY_CYCLES(n) __builtin_avr_delay_cycles(n)
 
 // defines for setting and clearing register bits
 #ifndef cbi
@@ -52,20 +43,10 @@ int16_t accel[bufLength]; // hold up to this many samples
 
 
 void setup() {
-  setClockPrescaler(1); //slow down clock to save battery 4 = 16x slower // makes 4 MHz clock
-  pinMode(PWMPIN, OUTPUT); // output pin for OCR0B
+  setClockPrescaler(1); //slow down clock to run at 1.8V; makes 4 MHz clock
+  pinMode(PWMPIN, OUTPUT); // output pin for OCR2B
   pinMode(LED, OUTPUT);
   digitalWrite(LED, HIGH);
-
-//// https://www.eprojectszone.com/how-to-modify-the-pwm-frequency-on-the-arduino-part1/
-//TCCR0A=0;//reset the register
-//TCCR0B=0;//reset tthe register
-//TCCR0A=0b00110011;// fast pwm mode on pin 5 (COM0B1)
-////TCCR0B=0b00000010;// prescaler 8
-//TCCR0B=0b00001001;// no prescaler; WGM02 is 1 (toggle Oc0A on Compare Match)
-//OCR0A=72; // 4 MHz/72 = 55.5 kHz
-////OCR0A=255;  // 4 MHz/255 (largest value because 8-bit timer) = 15.6 kHz
-  
   
   // initalize the  data ready and chip select pins:
   pinMode(chipSelectPinAccel, OUTPUT);
@@ -92,11 +73,12 @@ void setup() {
 
 
 void loop() {
-     processBuf(); // process buffer first to empty FIFO so don't miss watermark
+     //processBuf(); // process buffer first to empty FIFO so don't miss watermark
      //system_sleep();
 
-     //pulseOut();
-     delay(10);
+     pulsePattern();
+     delay(1000);
+     
      digitalWrite(LED, LOW);
 
      
@@ -108,9 +90,7 @@ void processBuf(){
   while((lis2SpiFifoPts() * 3 > bufLength)){
     lis2SpiFifoRead(bufLength);  //samples to read
     if(detectSound()){
-      digitalWrite(LED, HIGH);
-     // pulsePattern();
-      pulseOut();
+      pulsePattern();
     }  
   }
  // digitalWrite(LED, LOW);
@@ -143,74 +123,51 @@ boolean detectSound(){
     return 0;
 }
 
+
 void pulsePattern(){
-  // 32-bit code
-  for(int i=0; i<32; i++){
-    pulseOut();
-    for(int k=0; k<2*(tagID[i]+1); k++){
-       DELAY_CYCLES(100);
-    }
+  pulse = 0;
+  firstPulse = 1;
+
+  // initialize PWM
+  // https://www.arduino.cc/en/Tutorial/SecretsOfArduinoPWM
+  TCCR2B = 0; // turn off
+ 
+  // start Timer1
+  // Start Timer 1 interrupt that will control changing of frequency or phase of each pulse in ping
+  // Test here with LED
+
+  TCCR1A = 0;
+  TCCR1B = 0;
+  TCNT1 = 0;
+  OCR1A = 20;  // compare match register  // compare match register 4MHz/256  15625 = 1s; 156 = 10 ms
+  TCCR1B |= (1 << WGM12); // CTC Mode
+  TCCR1B |= (1 << CS12); // 256 prescaler
+  TIMSK1 |= (1 << OCIE1A); // enable timer compare interrupt
+}
+
+ISR(TIMER1_COMPA_vect){
+  if (firstPulse==1){
+    firstPulse = 0;
+    TCCR2A = _BV(COM2B1) | _BV(WGM21) | _BV(WGM20);
+    OCR2A = 10;  // PWM period
+    OCR2B = 5;   // PWM high length
+    TCCR2B = _BV(WGM22) | _BV(CS20);  // start Fast PWM; no prescaler
+  }
+  if(tagID[pulse]==0){
+    OCR2A = 2; // 10=181.8 kHz
+  }
+  else OCR2A = 40; // 11=166.6 kHz
+  
+  pulse++;
+  if(pulse>=32){
+    TCCR2B = 0; // turn off PWM
+    TCCR1A = 0; // turn off Timer 1
+    TCCR1B = 0;
+    TCNT1 = 0;
+    digitalWrite(PWMPIN, LOW);
   }
 }
 
-void pulseOut(){
-  // PWM
-  // when tried this got random bursts 
-//  TCCR0A=0;//reset the register
-//  TCCR0B=0;//reset the register
-//  TCCR0A=0b00110011;// fast pwm mode on pin 5 (COM0B1)
-//  TCCR0B=0b00001001;// no prescaler; WGM02 is 1 (toggle Oc0A on Compare Match)
-//  OCR0A=23; // 4 MHz/72 = 55.5 kHz; 4 MHz/23 = 173.9 kHz
-//
-//  DELAY_CYCLES(20);
-//
-//  TCCR0A=0;//reset the register
-//  TCCR0B=0;//reset the register
-
-  // when use loop, get extra delay
-  // amplitude is higher when pulseDelay is longer
-  // amplitude is highest when offDelay is 0 (up to 40V)
-  
-    sbi(PORTD, PWMPIN);
-    DELAY_CYCLES(pulseDelay);
-    cbi(PORTD, PWMPIN);
-    DELAY_CYCLES(offDelay);
-
-    sbi(PORTD, PWMPIN);
-    DELAY_CYCLES(pulseDelay);
-    cbi(PORTD, PWMPIN);
-    DELAY_CYCLES(offDelay);
-      
-    sbi(PORTD, PWMPIN);
-    DELAY_CYCLES(pulseDelay);
-    cbi(PORTD, PWMPIN);
-    DELAY_CYCLES(offDelay);
-
-    sbi(PORTD, PWMPIN);
-    DELAY_CYCLES(pulseDelay);
-    cbi(PORTD, PWMPIN);
-    DELAY_CYCLES(offDelay);
-      
-    sbi(PORTD, PWMPIN);
-    DELAY_CYCLES(pulseDelay);
-    cbi(PORTD, PWMPIN);
-    DELAY_CYCLES(offDelay);
-
-    sbi(PORTD, PWMPIN);
-    DELAY_CYCLES(pulseDelay);
-    cbi(PORTD, PWMPIN);
-    DELAY_CYCLES(offDelay);
-      
-    sbi(PORTD, PWMPIN);
-    DELAY_CYCLES(pulseDelay);
-    cbi(PORTD, PWMPIN);
-    DELAY_CYCLES(offDelay);
-
-    sbi(PORTD, PWMPIN);
-    DELAY_CYCLES(pulseDelay);
-    cbi(PORTD, PWMPIN);
-    DELAY_CYCLES(offDelay);
-}
 
 void watermark(){
   // wake up
