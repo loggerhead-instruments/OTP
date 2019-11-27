@@ -8,8 +8,9 @@
 boolean tagID[32] = {0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
 int16_t threshold = 100; // threshold for detecting signal
 uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffer to trigger
-uint8_t pulse;
-boolean firstPulse = 1;
+uint8_t pulse; // index into tagID
+boolean firstPulse = 1; // flag for whether first pulse in sequence. Used to start PWM.
+uint16_t bufCounter = 0; // counter for number of buffers processed. Used to control signal of tagID regardless of whether sound detected
 
 #define LED A2
 #define PWMPIN 3
@@ -68,18 +69,14 @@ void setup() {
   }
 
   lis2SpiInit();
+  digitalWrite(LED, LOW);
   
 }
 
 
 void loop() {
-     //processBuf(); // process buffer first to empty FIFO so don't miss watermark
-     //system_sleep();
-
-      pulsePattern();  // test pulse pattern
-     delay(1000);
-     
-
+     processBuf(); // process buffer first to empty FIFO so don't miss watermark
+     system_sleep();
      
      // ... ASLEEP HERE...
 }
@@ -87,13 +84,22 @@ void loop() {
 
 void processBuf(){
   while((lis2SpiFifoPts() * 3 > bufLength)){
+    bufCounter++;
+    
     lis2SpiFifoRead(bufLength);  //samples to read
-    if(detectSound()){
-      digitalWrite(LED, HIGH);
-      pulsePattern();      
-      digitalWrite(LED, LOW);
+    if(detectSound()){ 
+      pulsePattern(1);      
     }  
+    else{
+    // ping after bufCounter buffers
+    if(bufCounter>30){
+      digitalWrite(LED, HIGH);
+      pulsePattern(0);  // pulse pattern when sound not detected
+      bufCounter = 0;
+      }
+    }
   }
+  digitalWrite(LED, LOW);
 }
 
 
@@ -124,13 +130,23 @@ boolean detectSound(){
 }
 
 
-void pulsePattern(){
+void pulsePattern(boolean soundFlag){
   pulse = 0;
   firstPulse = 1;
 
   // initialize PWM
   // https://www.arduino.cc/en/Tutorial/SecretsOfArduinoPWM
   TCCR2B = 0; // turn off
+  // if no sound detected send introductory pulse
+  if(soundFlag==0){
+    TCCR2A = _BV(COM2B1) | _BV(WGM21) | _BV(WGM20);
+    OCR2A = 10; // 10=181.8 kHz
+    OCR2B = 5;   // PWM high length
+    TCCR2B = _BV(WGM22) | _BV(CS20);  // start Fast PWM; no prescaler
+    delay(10);
+    TCCR2B = 0;
+    delay(10);
+  }
  
   // Start Timer 1 interrupt that will control changing of frequency or phase of each pulse in ping
   TCCR1A = 0;
