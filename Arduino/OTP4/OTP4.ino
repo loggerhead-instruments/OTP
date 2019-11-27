@@ -153,19 +153,24 @@ ISR(TIMER1_COMPA_vect){
     OCR2B = 5;   // PWM high length
     TCCR2B = _BV(WGM22) | _BV(CS20);  // start Fast PWM; no prescaler
   }
-  if(tagID[pulse]==0){
-    OCR2A = 2; // 10=181.8 kHz
-  }
-  else OCR2A = 40; // 11=166.6 kHz
-  
-  pulse++;
+
+  // check if time to turn off
   if(pulse>=32){
     TCCR2B = 0; // turn off PWM
     TCCR1A = 0; // turn off Timer 1
     TCCR1B = 0;
     TCNT1 = 0;
     digitalWrite(PWMPIN, LOW);
+    return;
   }
+  
+  if(tagID[pulse]==0){
+    OCR2A = 2; // 10=181.8 kHz
+  }
+  else OCR2A = 40; // 11=166.6 kHz
+  
+  pulse++;
+
 }
 
 
