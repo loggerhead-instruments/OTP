@@ -76,10 +76,9 @@ void loop() {
      //processBuf(); // process buffer first to empty FIFO so don't miss watermark
      //system_sleep();
 
-     pulsePattern();
+      pulsePattern();  // test pulse pattern
      delay(1000);
      
-     digitalWrite(LED, LOW);
 
      
      // ... ASLEEP HERE...
@@ -90,10 +89,11 @@ void processBuf(){
   while((lis2SpiFifoPts() * 3 > bufLength)){
     lis2SpiFifoRead(bufLength);  //samples to read
     if(detectSound()){
-      pulsePattern();
+      digitalWrite(LED, HIGH);
+      pulsePattern();      
+      digitalWrite(LED, LOW);
     }  
   }
- // digitalWrite(LED, LOW);
 }
 
 
@@ -132,10 +132,7 @@ void pulsePattern(){
   // https://www.arduino.cc/en/Tutorial/SecretsOfArduinoPWM
   TCCR2B = 0; // turn off
  
-  // start Timer1
   // Start Timer 1 interrupt that will control changing of frequency or phase of each pulse in ping
-  // Test here with LED
-
   TCCR1A = 0;
   TCCR1B = 0;
   TCNT1 = 0;
@@ -149,7 +146,6 @@ ISR(TIMER1_COMPA_vect){
   if (firstPulse==1){
     firstPulse = 0;
     TCCR2A = _BV(COM2B1) | _BV(WGM21) | _BV(WGM20);
-    OCR2A = 10;  // PWM period
     OCR2B = 5;   // PWM high length
     TCCR2B = _BV(WGM22) | _BV(CS20);  // start Fast PWM; no prescaler
   }
@@ -163,14 +159,15 @@ ISR(TIMER1_COMPA_vect){
     digitalWrite(PWMPIN, LOW);
     return;
   }
-  
+
+
+  // OCR2A controls PWM period
   if(tagID[pulse]==0){
-    OCR2A = 2; // 10=181.8 kHz
+    OCR2A = 10; // 10=181.8 kHz
   }
-  else OCR2A = 40; // 11=166.6 kHz
+  else OCR2A = 11; // 11=166.6 kHz
   
   pulse++;
-
 }
 
 
