@@ -1,9 +1,13 @@
+// OpenTag Ping 
+// 
+
 #include <SPI.h>    // arduino pro/pro mini, AtMega 3.3V 8 MHz
 #include <avr/io.h>
 #include <avr/sleep.h>
 #include <avr/power.h>
 #include <util/delay.h>
 #include <prescaler.h>
+#include <avr/wdt.h>
 
 boolean tagID[32] = {0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
 int16_t threshold = 100; // threshold for detecting signal
@@ -56,6 +60,8 @@ void setup() {
   pinMode(DATAOUT, OUTPUT);
   pinMode(DATAIN, INPUT);
 
+  wdt_enable(WDTO_8S); // watchdog timer with 8 s timeout
+
   SPI.begin();
   SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0)); // with breadboard, speeds higher than 1MHz fail
 
@@ -70,6 +76,7 @@ void setup() {
 
   lis2SpiInit();
   digitalWrite(LED, LOW);
+  wdt_reset();  
   
 }
 
@@ -77,6 +84,7 @@ void setup() {
 void loop() {
      processBuf(); // process buffer first to empty FIFO so don't miss watermark
      system_sleep();
+     wdt_reset();  
      
      // ... ASLEEP HERE...
 }
