@@ -6,7 +6,7 @@
 #include <prescaler.h>
 
 //boolean tagID[32] = {0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
-boolean tagID[8] = {0,0,0,0,0,0,0,0};
+boolean tagID[16] = {0,0,1,0,0,0,1,0, 0,0,0,0,0,0,0,0};
 int16_t threshold = 100; // threshold for detecting signal
 uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffer to trigger
 
@@ -33,15 +33,16 @@ uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffe
 #define DELAY_CYCLES(n) __builtin_avr_delay_cycles(n)
 #define chargeDelay 2 // charging right now does not affect stimulus amplitude
 #define pulseOnDelay 16 // slightly higher on versus off balance increases stimulus amplitude
-#define pulseOnDelayB 17 // Alternative pulseOn duration for FSK encoding
+#define pulseOnDelayB 15 // Alternative pulseOn duration for FSK encoding - lower freq
 #define pulseOffDelay 0 // 12:4 is for app 160 kHz; 12:2 is for app 177 kHz
 
 
 // Define bit settings
-#define numBits 8   // Number of bits for ID signal
+#define numBits 16   // Number of bits for ID signal
 #define bitCycles 40 // Number of sine waves per bit
 #define bitShift 8   // Number of clock cycles for phase shift
-#define bitInt 0     // Number of clock cycles between bits
+#define bitInt 8     // Number of clock cycles between bits
+
 
 // defines for setting and clearing register bits
 #ifndef cbi
@@ -127,11 +128,20 @@ void loop() {
     //delay(400);
 
     // Semideep tank: PulsePattern
+    //digitalWrite(LED, HIGH);
     //pulsePattern();
+    //digitalWrite(LED, LOW);
     //delay(400);
+    
 
     // Eel Pond ID encoding
 
+    delay(1000);
+    for (int j=0; j<10; j++){
+      pulsePatternCarrier();
+      delay(100);
+    }
+    
     // Start Transmission
     delay(1000);
     pulseOutMarker();
@@ -142,30 +152,29 @@ void loop() {
     delay(1000);
     
     // 1: BPSK
-    for (int j=0; j<50; j++){
+    for (int j=0; j<20; j++){
       
       //tagID = {0,0,0,0,0,0,0,0};
-      for (int j1=0; j1<8; j1++){
+      for (int j1=8; j1<16; j1++){
         tagID[j1] = 0;
       }
       digitalWrite(LED, HIGH);
       pulsePattern();
-      delay(300);
+      delay(200);
       digitalWrite(LED, LOW);
 
       //tagID = {0,0,0,0,1,1,1,1};
-      for (int j1=4; j1<8; j1++){
+      for (int j1=12; j1<16; j1++){
         tagID[j1] = 1;
       } 
+      pulsePattern();
+      delay(200);
+
+      //tagID = {1,0,1,0,1,1,1,1};
+      tagID[8] = 1;
+      tagID[10] = 1;
       pulsePattern();
       delay(300);
-
-      //tagID = {1,1,1,1,1,1,1,1};
-      for (int j1=0; j1<8; j1++){
-        tagID[j1] = 1;
-      } 
-      pulsePattern();
-      delay(400);
     }
    
 
@@ -180,29 +189,46 @@ void loop() {
     for (int j=0; j<50; j++){
       
       //tagID = {0,0,0,0,0,0,0,0};
-      for (int j1=0; j1<8; j1++){
+      for (int j1=8; j1<16; j1++){
         tagID[j1] = 0;
       }
       digitalWrite(LED, HIGH);
       pulsePatternFSK();
-      delay(300);
+      delay(200);
       digitalWrite(LED, LOW);
 
       //tagID = {0,0,0,0,1,1,1,1};
-      for (int j1=4; j1<8; j1++){
+      for (int j1=12; j1<16; j1++){
         tagID[j1] = 1;
       } 
+      pulsePatternFSK();
+      delay(200);
+
+      //tagID = {1,0,1,0,1,1,1,1};
+      tagID[8] = 1;
+      tagID[10] = 1;
       pulsePatternFSK();
       delay(300);
-
-      //tagID = {1,1,1,1,1,1,1,1};
-      for (int j1=0; j1<8; j1++){
-        tagID[j1] = 1;
-      } 
-      pulsePatternFSK();
-      delay(400);
     }
 
+    // Switch transmission
+    delay(1000);
+    pulseOutMarker();
+    delay(1000);
+
+    // Single pulses
+
+    for(int i=0; i<numBits; i++){
+      pulseOut();  
+      delay(100);
+    }
+
+    delay(1000);
+    
+    for(int i=0; i<numBits; i++){
+      pulseOutB();  
+      delay(100);
+    }
     
     // ESL free-field measurement protocol
     //delay(5000);
@@ -315,6 +341,21 @@ boolean detectSound(){
     return 0;
 }
 
+void pulsePatternCarrier(){
+  // 32-bit code tagID
+  for(int i=0; i<numBits; i++){
+    if (tagID[i]) {
+      pulseOut();  
+      DELAY_CYCLES(bitShift);
+    }
+    else {
+      pulseOut();  
+      DELAY_CYCLES(bitShift);
+    }
+  DELAY_CYCLES(bitInt);
+  }
+}
+
 void pulsePattern(){
   // 32-bit code tagID
   for(int i=0; i<numBits; i++){
@@ -355,7 +396,7 @@ void pulsePatternFSK(){
     else {
       pulseOutB();  
     }
-  DELAY_CYCLES(bitInt);
+  //DELAY_CYCLES(bitInt);
   }
 }
 
