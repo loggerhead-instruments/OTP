@@ -60,6 +60,7 @@ void setup() {
   pinMode(DATAOUT, OUTPUT);
   pinMode(DATAIN, INPUT);
 
+  // initialize watchdog timer. Remember to continuously re-initialize
   wdt_enable(WDTO_8S); // watchdog timer with 8 s timeout
 
   SPI.begin();
@@ -77,6 +78,18 @@ void setup() {
   lis2SpiInit();
   digitalWrite(LED, LOW);
   wdt_reset();  
+
+  // LED sequence for successful start: 3 medium, 1 long flash
+  for(int i=0; i<3; i++) {
+    delay(300);
+    digitalWrite(LED, HIGH);
+    delay(300);
+    digitalWrite(LED, LOW);
+  }
+  delay(300);
+  digitalWrite(LED, HIGH);
+  delay(1000);
+  digitalWrite(LED, LOW);
   
 }
 
