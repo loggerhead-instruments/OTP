@@ -9,12 +9,18 @@
 #include <prescaler.h>
 #include <avr/wdt.h>
 
-boolean tagID[32] = {0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
+//boolean tagID[32] = {0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
+boolean tagID[4] = {0,1,0,0};
 int16_t threshold = 100; // threshold for detecting signal
 uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffer to trigger
-uint8_t pulse; // index into tagID
+uint8_t pulse = 0; // index into tagID
 boolean firstPulse = 1; // flag for whether first pulse in sequence. Used to start PWM.
 uint16_t bufCounter = 0; // counter for number of buffers processed. Used to control signal of tagID regardless of whether sound detected
+
+// store number of bits - or use DEFINE when finalized
+//uint8_t NBIT = *(&tagID + 1) - tagID;
+#define NBIT (*(&tagID + 1) - tagID)
+
 
 #define LED A2
 #define PWMPIN 3
@@ -95,8 +101,12 @@ void setup() {
 
 
 void loop() {
-     processBuf(); // process buffer first to empty FIFO so don't miss watermark
-     system_sleep();
+     //processBuf(); // process buffer first to empty FIFO so don't miss watermark
+     //system_sleep();
+
+     // Regular transmissions
+     pulsePattern(1);
+     delay(400);
      wdt_reset();  
      
      // ... ASLEEP HERE...
@@ -180,6 +190,7 @@ void pulsePattern(boolean soundFlag){
 }
 
 ISR(TIMER1_COMPA_vect){
+  // Initialize if this is first pulse
   if (firstPulse==1){
     firstPulse = 0;
     TCCR2A = _BV(COM2B1) | _BV(WGM21) | _BV(WGM20);
@@ -188,7 +199,7 @@ ISR(TIMER1_COMPA_vect){
   }
 
   // check if time to turn off
-  if(pulse>=32){
+  if(pulse>NBIT){
     TCCR2B = 0; // turn off PWM
     TCCR1A = 0; // turn off Timer 1
     TCCR1B = 0;
@@ -198,11 +209,13 @@ ISR(TIMER1_COMPA_vect){
   }
 
 
-  // OCR2A controls PWM period
+  // FSK mode: Bit determines PWM2 pulse rate - OCR2A controls PWM period
   if(tagID[pulse]==0){
     OCR2A = 10; // 10=181.8 kHz
   }
-  else OCR2A = 11; // 11=166.6 kHz
+  else {
+    OCR2A = 11; // 11=166.6 kHz
+  }
   
   pulse++;
 }
