@@ -10,7 +10,7 @@
 #include <avr/wdt.h>
 
 //boolean tagID[32] = {0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
-boolean tagID[4] = {0,1,0,0};
+boolean tagID[16] = {0,0,1,0,0,0,1,0, 0,0,0,0,0,0,0,0};
 int16_t threshold = 100; // threshold for detecting signal
 uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffer to trigger
 uint8_t pulse = 0; // index into tagID
@@ -101,15 +101,43 @@ void setup() {
 
 
 void loop() {
-     //processBuf(); // process buffer first to empty FIFO so don't miss watermark
-     //system_sleep();
+  //processBuf(); // process buffer first to empty FIFO so don't miss watermark
+  //system_sleep();
 
-     // Regular transmissions
-     pulsePattern(1);
-     delay(400);
-     wdt_reset();  
+  // Regular transmissions
+  //pulsePattern(1);
+  //delay(400);
+  //wdt_reset();  
      
-     // ... ASLEEP HERE...
+  // 2: FSK
+  for (int j=0; j<50; j++){
+      
+    //tagID = {0,0,0,0,0,0,0,0};
+    for (int j1=8; j1<16; j1++){
+      tagID[j1] = 0;
+    }
+    
+    digitalWrite(LED, HIGH);
+    pulsePattern(1);
+    delay(200);
+    digitalWrite(LED, LOW);
+
+    //tagID = {0,0,0,0,1,1,1,1};
+    for (int j1=12; j1<16; j1++){
+      tagID[j1] = 1;
+    } 
+    pulsePattern(1);
+    delay(200);
+
+    //tagID = {1,0,1,0,1,1,1,1};
+    tagID[8] = 1;
+    tagID[10] = 1;
+    pulsePattern(1);
+    delay(300);
+
+    // Reset watchdog timer
+    wdt_reset();
+  }
 }
 
 
