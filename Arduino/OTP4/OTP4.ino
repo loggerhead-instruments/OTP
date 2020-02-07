@@ -215,9 +215,20 @@ void pulsePattern(boolean soundFlag){
   TCCR1B |= (1 << WGM12); // CTC Mode
   TCCR1B |= (1 << CS12); // 256 prescaler
   TIMSK1 |= (1 << OCIE1A); // enable timer compare interrupt
+
+  // Do we want to sleep here until pulse is done to prevent collisions?
 }
 
 ISR(TIMER1_COMPA_vect){
+
+  // FSK mode: Bit determines PWM2 pulse rate - OCR2A controls PWM period
+  if(tagID[pulse]==0){
+    OCR2A = 10; // 10=181.8 kHz
+  }
+  else {
+    OCR2A = 11; // 11=166.6 kHz
+  }
+  
   // Initialize if this is first pulse
   if (firstPulse==1){
     firstPulse = 0;
@@ -234,15 +245,6 @@ ISR(TIMER1_COMPA_vect){
     TCNT1 = 0;
     digitalWrite(PWMPIN, LOW);
     return;
-  }
-
-
-  // FSK mode: Bit determines PWM2 pulse rate - OCR2A controls PWM period
-  if(tagID[pulse]==0){
-    OCR2A = 10; // 10=181.8 kHz
-  }
-  else {
-    OCR2A = 11; // 11=166.6 kHz
   }
   
   pulse++;
