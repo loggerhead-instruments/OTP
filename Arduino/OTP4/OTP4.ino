@@ -9,17 +9,19 @@
 #include <prescaler.h>
 #include <avr/wdt.h>
 
+// Transmission settings
 //boolean tagID[32] = {0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
 //boolean tagID[16] = {0,0,1,0,0,0,1,0, 0,0,0,0,0,0,0,0};
 //boolean tagID[4] = {0,0,1,0};
 boolean tagID[1] = {0};
+uint8_t pulse = 0; // index into tagID - we can also use register counting with timer1 and pin5: https://forum.arduino.cc/index.php?topic=494744.0
+
+// Detector settings
 int16_t threshold = 100; // threshold for detecting signal
 uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffer to trigger
-uint8_t pulse = 0; // index into tagID - we can also use register counting with timer1 and pin5: https://forum.arduino.cc/index.php?topic=494744.0
-boolean firstPulse = 1; // flag for whether first pulse in sequence. Used to start PWM.
 uint16_t bufCounter = 0; // counter for number of buffers processed. Used to control signal of tagID regardless of whether sound detected
 
-// store number of bits - or use DEFINE when finalized
+// calculate number of bits based on tagID
 //uint8_t NBIT = *(&tagID + 1) - tagID;
 #define NBIT (*(&tagID + 1) - tagID)
 
@@ -33,7 +35,7 @@ uint16_t bufCounter = 0; // counter for number of buffers processed. Used to con
 #define INT1 2
 
 
-// defines for setting and clearing register bits
+// defines for setting and clearing register bits - check if we use these, switch to _BV
 #ifndef cbi
 #define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
 #endif
@@ -69,7 +71,7 @@ void setup() {
   pinMode(DATAIN, INPUT);
 
   // initialize watchdog timer. Remember to continuously re-initialize
-  //wdt_enable(WDTO_1S); // watchdog timer with 8 s timeout
+  wdt_enable(WDTO_8S); // watchdog timer with 8 s timeout
 
   SPI.begin();
   SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0)); // with breadboard, speeds higher than 1MHz fail
@@ -85,7 +87,7 @@ void setup() {
 
   lis2SpiInit();
   digitalWrite(LED, LOW);
-  //wdt_reset();  
+  wdt_reset();  
 
   // LED sequence for successful start: 3 medium, 1 long flash
   for(int i=0; i<3; i++) {
@@ -106,6 +108,13 @@ void loop() {
   //processBuf(); // process buffer first to empty FIFO so don't miss watermark
   //system_sleep();
 
+  // Test sleep mode  
+  wdt_reset(); // reset watchdog timer (will wake up system after 8s)
+  system_sleep(); // Sleep doesn't seem to be working
+
+    // // supposed to sleep here // //
+
+
   // Regular transmissions
   pulsePattern(1);
 
@@ -123,7 +132,7 @@ void loop() {
   digitalWrite(LED, LOW);
 
   
-  //wdt_reset();  
+
      
   // 2: FSK
 //  for (int j=0; j<50; j++){
