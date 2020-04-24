@@ -10,10 +10,12 @@
 #include <avr/wdt.h>
 
 //boolean tagID[32] = {0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
-boolean tagID[16] = {0,0,1,0,0,0,1,0, 0,0,0,0,0,0,0,0};
+//boolean tagID[16] = {0,0,1,0,0,0,1,0, 0,0,0,0,0,0,0,0};
+//boolean tagID[4] = {0,0,1,0};
+boolean tagID[1] = {0};
 int16_t threshold = 100; // threshold for detecting signal
 uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffer to trigger
-uint8_t pulse = 0; // index into tagID
+uint8_t pulse = 0; // index into tagID - we can also use register counting with timer1 and pin5: https://forum.arduino.cc/index.php?topic=494744.0
 boolean firstPulse = 1; // flag for whether first pulse in sequence. Used to start PWM.
 uint16_t bufCounter = 0; // counter for number of buffers processed. Used to control signal of tagID regardless of whether sound detected
 
@@ -54,7 +56,7 @@ int16_t accel[bufLength]; // hold up to this many samples
 
 
 void setup() {
-  setClockPrescaler(1); //slow down clock to run at 1.8V; makes 4 MHz clock
+  //setClockPrescaler(1); //slow down clock to run at 1.8V; makes 4 MHz clock
   pinMode(PWMPIN, OUTPUT); // output pin for OCR2B
   pinMode(LED, OUTPUT);
   digitalWrite(LED, HIGH);
@@ -67,7 +69,7 @@ void setup() {
   pinMode(DATAIN, INPUT);
 
   // initialize watchdog timer. Remember to continuously re-initialize
-  wdt_enable(WDTO_8S); // watchdog timer with 8 s timeout
+  //wdt_enable(WDTO_1S); // watchdog timer with 8 s timeout
 
   SPI.begin();
   SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0)); // with breadboard, speeds higher than 1MHz fail
@@ -83,7 +85,7 @@ void setup() {
 
   lis2SpiInit();
   digitalWrite(LED, LOW);
-  wdt_reset();  
+  //wdt_reset();  
 
   // LED sequence for successful start: 3 medium, 1 long flash
   for(int i=0; i<3; i++) {
@@ -105,39 +107,54 @@ void loop() {
   //system_sleep();
 
   // Regular transmissions
-  //pulsePattern(1);
-  //delay(400);
+  pulsePattern(1);
+
+  delay(500);
+  digitalWrite(LED, HIGH);
+  delay(200);
+  digitalWrite(LED, LOW);
+  delay(200);
+  digitalWrite(LED, HIGH);
+  delay(200);
+  digitalWrite(LED, LOW);
+  delay(200);
+  digitalWrite(LED, HIGH);
+  delay(200);
+  digitalWrite(LED, LOW);
+
+  
   //wdt_reset();  
      
   // 2: FSK
-  for (int j=0; j<50; j++){
-      
-    //tagID = {0,0,0,0,0,0,0,0};
-    for (int j1=8; j1<16; j1++){
-      tagID[j1] = 0;
-    }
-    
-    digitalWrite(LED, HIGH);
-    pulsePattern(1);
-    delay(200);
-    digitalWrite(LED, LOW);
+//  for (int j=0; j<50; j++){
+//      
+//    //tagID = {0,0,0,0,0,0,0,0};
+//    for (int j1=8; j1<16; j1++){
+//      tagID[j1] = 0;
+//    }
+//    
+//    digitalWrite(LED, HIGH);
+//    pulsePattern(1);
+//    delay(200);
+//    digitalWrite(LED, LOW);
+//
+//    //tagID = {0,0,0,0,1,1,1,1};
+//    for (int j1=12; j1<16; j1++){
+//      tagID[j1] = 1;
+//    } 
+//    pulsePattern(1);
+//    delay(200);
+//
+//    //tagID = {1,0,1,0,1,1,1,1};
+//    tagID[8] = 1;
+//    tagID[10] = 1;
+//    pulsePattern(1);
+//    delay(300);
+//
+//    // Reset watchdog timer
+//    wdt_reset();
+//  }
 
-    //tagID = {0,0,0,0,1,1,1,1};
-    for (int j1=12; j1<16; j1++){
-      tagID[j1] = 1;
-    } 
-    pulsePattern(1);
-    delay(200);
-
-    //tagID = {1,0,1,0,1,1,1,1};
-    tagID[8] = 1;
-    tagID[10] = 1;
-    pulsePattern(1);
-    delay(300);
-
-    // Reset watchdog timer
-    wdt_reset();
-  }
 }
 
 
@@ -191,60 +208,52 @@ boolean detectSound(){
 
 void pulsePattern(boolean soundFlag){
   pulse = 0;
-  firstPulse = 1;
+
+  // Information on timers here
+  // https://www.arduino.cc/en/Tutorial/SecretsOfArduinoPWM
+  // http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf
 
   // initialize PWM
-  // https://www.arduino.cc/en/Tutorial/SecretsOfArduinoPWM
   TCCR2B = 0; // turn off
-  // if no sound detected send introductory pulse
-  if(soundFlag==0){
-    TCCR2A = _BV(COM2B1) | _BV(WGM21) | _BV(WGM20);
-    OCR2A = 10; // 10=181.8 kHz
-    OCR2B = 5;   // PWM high length
-    TCCR2B = _BV(WGM22) | _BV(CS20);  // start Fast PWM; no prescaler
-    delay(10);
-    TCCR2B = 0;
-    delay(10);
-  }
  
   // Start Timer 1 interrupt that will control changing of frequency or phase of each pulse in ping
   TCCR1A = 0;
   TCCR1B = 0;
   TCNT1 = 0;
-  OCR1A = 20;  // compare match register  // compare match register 4MHz/256  15625 = 1s; 156 = 10 ms
+  OCR1A = 449;  // compare match register - OCR1A = 40 [cycles per bit] x (44+1) [ticks per cycle] - 1 = 1799 [for some reason, seems to be off by x2]
   TCCR1B |= (1 << WGM12); // CTC Mode
-  TCCR1B |= (1 << CS12); // 256 prescaler
+  TCCR1B |= (1 << CS10); //  no prescaler - 16-bit counter can accomodate up to 1400 cycles per bit...
   TIMSK1 |= (1 << OCIE1A); // enable timer compare interrupt
 
   // Do we want to sleep here until pulse is done to prevent collisions?
+  
 }
 
 ISR(TIMER1_COMPA_vect){
 
-  // FSK mode: Bit determines PWM2 pulse rate - OCR2A controls PWM period
-  if(tagID[pulse]==0){
-    OCR2A = 10; // 10=181.8 kHz
-  }
-  else {
-    OCR2A = 11; // 11=166.6 kHz
-  }
-  
-  // Initialize if this is first pulse
-  if (firstPulse==1){
-    firstPulse = 0;
-    TCCR2A = _BV(COM2B1) | _BV(WGM21) | _BV(WGM20);
-    OCR2B = 5;   // PWM high length
-    TCCR2B = _BV(WGM22) | _BV(CS20);  // start Fast PWM; no prescaler
-  }
-
   // check if time to turn off
   if(pulse>NBIT){
+    TCCR2A = 0; // turn off timer2 PWM
     TCCR2B = 0; // turn off PWM
     TCCR1A = 0; // turn off Timer 1
     TCCR1B = 0;
     TCNT1 = 0;
-    digitalWrite(PWMPIN, LOW);
     return;
+  }
+  
+  // FSK mode: Bit determines PWM2 pulse rate - OCR2A controls PWM period
+  if(tagID[pulse]==0){
+    OCR2A = 44; // 44=178 kHz (frequency, kHz = 1/ ( [OCR2A+1]/clock_speed) )
+  }
+  else {
+    OCR2A = 46; // 46=170 kHz
+  }
+  
+  // Initialize if this is first pulse
+  if (pulse==0){
+    TCCR2A = _BV(COM2B1) | _BV(WGM21) | _BV(WGM20);
+    OCR2B = 22;   // PWM high length
+    TCCR2B = _BV(WGM22) | _BV(CS20);  // start Fast PWM; no prescaler
   }
   
   pulse++;
