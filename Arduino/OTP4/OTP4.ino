@@ -13,7 +13,7 @@
 //boolean tagID[32] = {0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
 boolean tagID[16] = {0,0,1,0,0,0,1,0, 0,0,0,0,0,0,0,0};
 //boolean tagID[4] = {0,0,1,0};
-//boolean tagID[2] = {0,1};
+//boolean tagID[1] = {0};
 uint8_t pulse = 0; // index into tagID - we can also use register counting with timer1 and pin5: https://forum.arduino.cc/index.php?topic=494744.0
 
 // Detector settings
@@ -108,9 +108,9 @@ void loop() {
   //processBuf(); // process buffer first to empty FIFO so don't miss watermark
   //system_sleep();
 
-  // Regular transmissions
-  // pulsePattern(1);
-
+//  // Regular transmissions
+//  pulsePattern(1);
+//
 //  delay(500);
 //  digitalWrite(LED, HIGH);
 //  delay(200);
@@ -123,6 +123,7 @@ void loop() {
 //  digitalWrite(LED, HIGH);
 //  delay(200);
 //  digitalWrite(LED, LOW);
+
 
        
   // 2: FSK
@@ -207,20 +208,21 @@ boolean detectSound(){
 
 
 void pulsePattern(boolean soundFlag){
-  pulse = 0;
+  
 
   // Information on timers here
   // https://www.arduino.cc/en/Tutorial/SecretsOfArduinoPWM
   // http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf
 
   // initialize PWM
+  pulse = 0;
   TCCR2B = 0; // turn off
  
   // Start Timer 1 interrupt that will control changing of frequency or phase of each pulse in ping
   TCCR1A = 0;
   TCCR1B = 0;
   TCNT1 = 0;
-  OCR1A = 449;  // compare match register - OCR1A = 20 [cycles per bit] / 2 [switches per PWM cycle] x (44+1) [ticks per cycle] - 1 = 1799
+  OCR1A = 1799;  // compare match register - OCR1A = 20 [cycles per bit] * 2 [switches per PWM cycle] x (44+1) [ticks per cycle] - 1 [zero-index] = 1799
   TCCR1B |= (1 << WGM12); // CTC Mode
   TCCR1B |= (1 << CS10); //  no prescaler - 16-bit counter can accomodate up to 1400 cycles per bit...
   TIMSK1 |= (1 << OCIE1A); // enable timer compare interrupt
@@ -229,6 +231,7 @@ void pulsePattern(boolean soundFlag){
   
 }
 
+// Ping generation for FSK mode
 ISR(TIMER1_COMPA_vect){
 
   // check if time to turn off
@@ -243,30 +246,59 @@ ISR(TIMER1_COMPA_vect){
   
   // FSK mode: Bit determines PWM2 pulse rate - OCR2A controls PWM period
   if(tagID[pulse]==0){
-    OCR2A = 44; // 44=178 kHz (frequency, kHz = 1/ ( [OCR2A+1]/clock_speed) )
+    //OCR2B = 22;   // PWM high length, set to half of OCR2A (round down)    
+    //OCR2A = 44; // 44=178 kHz (frequency, kHz = 1/ ( [OCR2A+1]/clock_speed) )
+    OCR2A = 46; // 46=170 kHz (frequency, kHz = 1/ ( [OCR2A+1]/clock_speed) )
   }
   else {
-    OCR2A = 46; // 46=170 kHz
+    //OCR2B = 23;   // PWM high length, set to half of OCR2A (round down)    
+    //OCR2A = 46; // 46=170 kHz
+    OCR2A = 48; // 46=170 kHz
   }
-
-  // BPSK mode: Bit determines PWM phase shift (inverted/non-inverted)
-  // Table 15.3, p108 of manual
-  //if(tagID[pulse]==0){
-  //  TCCR1A = ~_BV(COM1A0) | ~_BV(COM1B0) ; // PWM non-inverting mode
-  //}
-  //else {
-  //  TCCR1A = _BV(COM1A0) | _BV(COM1B0) ; // PWM Inverting mode
-  //}
   
   // Initialize if this is first pulse
   if (pulse==0){
-    TCCR2A = _BV(COM2B1) | _BV(WGM21) | _BV(WGM20);
-    OCR2B = 22;   // PWM high length, set to half of OCR2A (round down)
-    TCCR2B = _BV(WGM22) | _BV(CS20);  // start Fast PWM; no prescaler
+    OCR2B = 23;   // PWM high length, set to half of OCR2A (round down)    
+    TCCR2A = _BV(COM2B1) | _BV(WGM21) | _BV(WGM20); //
+    TCCR2B = _BV(WGM22) | _BV(CS20);  // start Fast PWM (WGM22, WGM21, WGM20 all 1); no prescaler
   }
   
   pulse++;
 }
+
+// Ping generation for BPSK mode - DOES NOT WORK
+//ISR(TIMER1_COMPA_vect){
+//
+//  // check if time to turn off
+//  if(pulse>NBIT){
+//    TCCR2A = 0; // turn off timer2 PWM
+//    TCCR2B = 0; // turn off PWM
+//    TCCR1A = 0; // turn off Timer 1
+//    TCCR1B = 0;
+//    TCNT1 = 0;
+//    return;
+//  }
+//  
+//  // BPSK mode: Bit determines PWM phase shift (inverted/non-inverted)
+//  // Table 15.3, p108 of manual
+//  if(tagID[pulse]==0){
+//    TCCR2A = _BV(COM2B0) | ~_BV(COM2B0);  // PWM non-inverting mode
+//    //TCCR2A = _BV(COM2B1) | _BV(COM2B0) ;   // PWM Inverting mode
+//  }
+//  else {
+//    //TCCR2A = _BV(COM2B0) ;   // PWM Inverting mode - doesn't work
+//  }
+//  
+//  // Initialize if this is first pulse
+//  if (pulse==0){
+//    OCR2A = 44;   // 44=178 kHz (frequency, kHz = 1/ ( [OCR2A+1]/clock_speed) )
+//    OCR2B = 22;   // PWM high length, set to half of OCR2A (round down)
+//    TCCR2A = _BV(WGM21) | _BV(WGM20);    
+//    TCCR2B = _BV(WGM22) | _BV(CS20);  // start Fast PWM; no prescaler
+//  }
+//  
+//  pulse++;
+//}
 
 
 void watermark(){
