@@ -45,16 +45,16 @@ uint16_t bufCounter = 0; // counter for number of buffers processed. Used to con
 // Define individual pulse settings
 #define DELAY_CYCLES(n) __builtin_avr_delay_cycles(n)
 #define chargeDelay 2 // charging right now does not affect stimulus amplitude
-#define pulseOnDelay 16 // slightly higher on versus off balance increases stimulus amplitude
-#define pulseOnDelayB 15 // Alternative pulseOn duration for FSK encoding - lower freq
-#define pulseOffDelay 0 // 12:4 is for app 160 kHz; 12:2 is for app 177 kHz
+#define pulseOnDelay 38 // (38+2) cycles = 160 kHz
+#define pulseOffDelay 2 // 
+#define pulseOnDelayB 40 // (40+2) cycles = 154 kHz
 
 
 // Define bit settings
 #define numBits 16   // Number of bits for ID signal
 #define bitCycles 40 // Number of sine waves per bit
-#define bitShift 8   // Number of clock cycles for phase shift
-#define bitInt 8     // Number of clock cycles between bits
+#define bitShift 20   // Number of clock cycles for phase shift
+#define bitInt 20     // Number of clock cycles between bits
 
 // defines for setting and clearing register bits - check if we use these, switch to _BV
 #ifndef cbi
@@ -124,14 +124,18 @@ void setup() {
 
 
 void loop() {
+
+    //Acoustic testing in tank
+    //pulseOut();
+    //pulsePattern();
+    //digitalWrite(LED, HIGH);
+    //delay(500);
+    //digitalWrite(LED, LOW);
+    //delay(500);
+    
+    
     // Eel Pond ID encoding
 
-    delay(1000);
-    for (int j=0; j<10; j++){
-      pulsePatternCarrier();
-      delay(100);
-    }
-    
     // Start Transmission
     delay(1000);
     pulseOutMarker();
@@ -201,26 +205,6 @@ void loop() {
       delay(300);
     }
 
-    // Switch transmission
-    delay(1000);
-    pulseOutMarker();
-    delay(1000);
-
-    // Single pulses
-
-    for(int i=0; i<numBits; i++){
-      pulseOut();  
-      delay(100);
-    }
-
-    delay(1000);
-    
-    for(int i=0; i<numBits; i++){
-      pulseOutB();  
-      delay(100);
-    }
-
-
 }
 
 
@@ -271,21 +255,6 @@ boolean detectSound(){
     return 0;
 }
 
-
-void pulsePatternCarrier(){
-  // 32-bit code tagID
-  for(int i=0; i<numBits; i++){
-    if (tagID[i]) {
-      pulseOut();  
-      DELAY_CYCLES(bitShift);
-    }
-    else {
-      pulseOut();  
-      DELAY_CYCLES(bitShift);
-    }
-  DELAY_CYCLES(bitInt);
-  }
-}
 
 void pulsePattern(){
   // 32-bit code tagID
