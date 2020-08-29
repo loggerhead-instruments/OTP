@@ -11,7 +11,7 @@
 
 // Transmission settings
 //boolean tagID[32] = {0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
-boolean tagID[16] = {0,0,1,0,0,0,1,0, 0,0,0,0,0,0,0,0};
+boolean tagID[16] = {0,0,1,0,0,0,0,1,  0,0,0,0,0,0,0,0};
 //boolean tagID[4] = {0,0,1,0};
 //boolean tagID[1] = {0};
 uint8_t pulse = 0; // index into tagID - we can also use register counting with timer1 and pin5: https://forum.arduino.cc/index.php?topic=494744.0
@@ -168,7 +168,7 @@ void loop() {
       tagID[8] = 1;
       tagID[10] = 1;
       pulsePattern();
-      delay(300);
+      delay(400);
     }
    
 
@@ -180,7 +180,7 @@ void loop() {
     delay(1000);
 
     // 2: FSK
-    for (int j=0; j<50; j++){
+    for (int j=0; j<20; j++){
       
       //tagID = {0,0,0,0,0,0,0,0};
       for (int j1=8; j1<16; j1++){
@@ -202,7 +202,7 @@ void loop() {
       tagID[8] = 1;
       tagID[10] = 1;
       pulsePatternFSK();
-      delay(300);
+      delay(400);
     }
 
 }
@@ -255,7 +255,6 @@ boolean detectSound(){
     return 0;
 }
 
-
 void pulsePattern(){
   // 32-bit code tagID
   for(int i=0; i<numBits; i++){
@@ -271,20 +270,6 @@ void pulsePattern(){
   }
 }
 
-void pulseOut(){
-  // make a pulse of bitCycles cycles
-  // using 3 cycle delay makes a 400 kHz square wave
-  // when use loop, get extra delay for low side
-  // when remove loop, don't get an output
-    
-  for(int n=0; n<bitCycles; n++){
-    sbi(PORTD, PWMPIN);
-    DELAY_CYCLES(pulseOnDelay);
-    cbi(PORTD, PWMPIN);
-    DELAY_CYCLES(pulseOffDelay);
-  }
-}
-
 // FSK ENCODING
 
 void pulsePatternFSK(){
@@ -297,6 +282,20 @@ void pulsePatternFSK(){
       pulseOutB();  
     }
   //DELAY_CYCLES(bitInt);
+  }
+}
+
+void pulseOut(){
+  // make a pulse of bitCycles cycles
+  // using 3 cycle delay makes a 400 kHz square wave
+  // when use loop, get extra delay for low side
+  // when remove loop, don't get an output
+    
+  for(int n=0; n<bitCycles; n++){
+    sbi(PORTD, PWMPIN);
+    DELAY_CYCLES(pulseOnDelay);
+    cbi(PORTD, PWMPIN);
+    DELAY_CYCLES(pulseOffDelay);
   }
 }
 

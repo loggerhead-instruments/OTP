@@ -11,7 +11,7 @@
 
 // Transmission settings
 //boolean tagID[32] = {0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
-boolean tagID[16] = {0,0,1,0,0,0,1,0, 0,0,0,0,0,0,0,0};
+boolean tagID[16] = {0,0,1,0,0,0,0,1, 0,0,0,0,0,0,0,0};
 //boolean tagID[4] = {0,0,1,0};
 //boolean tagID[1] = {0};
 uint8_t pulse = 0; // index into tagID - we can also use register counting with timer1 and pin5: https://forum.arduino.cc/index.php?topic=494744.0
@@ -108,26 +108,16 @@ void loop() {
   //processBuf(); // process buffer first to empty FIFO so don't miss watermark
   //system_sleep();
 
-//  // Regular transmissions
-//  pulsePattern(1);
-//
-//  delay(500);
-//  digitalWrite(LED, HIGH);
-//  delay(200);
-//  digitalWrite(LED, LOW);
-//  delay(200);
-//  digitalWrite(LED, HIGH);
-//  delay(200);
-//  digitalWrite(LED, LOW);
-//  delay(200);
-//  digitalWrite(LED, HIGH);
-//  delay(200);
-//  digitalWrite(LED, LOW);
-
+//    //Acoustic testing in tank
+//    pulsePattern(1);
+//    digitalWrite(LED, HIGH);
+//    delay(500);
+//    digitalWrite(LED, LOW);
+//    delay(500);
 
        
   // 2: FSK
-  for (int j=0; j<50; j++){
+  for (int j=0; j<20; j++){
       
     //tagID = {0,0,0,0,0,0,0,0};
     for (int j1=8; j1<16; j1++){
@@ -222,7 +212,7 @@ void pulsePattern(boolean soundFlag){
   TCCR1A = 0;
   TCCR1B = 0;
   TCNT1 = 0;
-  OCR1A = 1799;  // compare match register - OCR1A = 20 [cycles per bit] * 2 [switches per PWM cycle] x (44+1) [ticks per cycle] - 1 [zero-index] = 1799
+  OCR1A = 899;  // compare match register - OCR1A = 20 [cycles per bit] * 2 [switches per PWM cycle] x (44+1) [ticks per cycle] - 1 [zero-index] = 1799
   TCCR1B |= (1 << WGM12); // CTC Mode
   TCCR1B |= (1 << CS10); //  no prescaler - 16-bit counter can accomodate up to 1400 cycles per bit...
   TIMSK1 |= (1 << OCIE1A); // enable timer compare interrupt
@@ -248,17 +238,17 @@ ISR(TIMER1_COMPA_vect){
   if(tagID[pulse]==0){
     //OCR2B = 22;   // PWM high length, set to half of OCR2A (round down)    
     //OCR2A = 44; // 44=178 kHz (frequency, kHz = 1/ ( [OCR2A+1]/clock_speed) )
-    OCR2A = 46; // 46=170 kHz (frequency, kHz = 1/ ( [OCR2A+1]/clock_speed) )
+    OCR2A = 47; // 46=170 kHz (frequency, kHz = 1/ ( [OCR2A+1]/clock_speed) )
   }
   else {
     //OCR2B = 23;   // PWM high length, set to half of OCR2A (round down)    
     //OCR2A = 46; // 46=170 kHz
-    OCR2A = 48; // 46=170 kHz
+    OCR2A = 49; // 46=170 kHz
   }
   
   // Initialize if this is first pulse
   if (pulse==0){
-    OCR2B = 23;   // PWM high length, set to half of OCR2A (round down)    
+    OCR2B = 38;   // PWM high length, set to half of OCR2A (round down)    
     TCCR2A = _BV(COM2B1) | _BV(WGM21) | _BV(WGM20); //
     TCCR2B = _BV(WGM22) | _BV(CS20);  // start Fast PWM (WGM22, WGM21, WGM20 all 1); no prescaler
   }
