@@ -6,7 +6,7 @@
 #include <prescaler.h>
 
 //boolean tagID[32] = {0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
-boolean tagID[16] = {0,0,1,0,0,0,1,0, 0,0,0,0,0,0,0,0};
+boolean tagID[16] = {0,0,1,0,0,0,0,1, 0,0,0,0,0,0,0,0};
 int16_t threshold = 100; // threshold for detecting signal
 uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffer to trigger
 
@@ -186,7 +186,7 @@ void loop() {
     delay(1000);
 
     // 2: FSK
-    for (int j=0; j<50; j++){
+    for (int j=0; j<20; j++){
       
       //tagID = {0,0,0,0,0,0,0,0};
       for (int j1=8; j1<16; j1++){
@@ -216,20 +216,6 @@ void loop() {
     pulseOutMarker();
     delay(1000);
 
-    // Single pulses
-
-    for(int i=0; i<numBits; i++){
-      pulseOut();  
-      delay(100);
-    }
-
-    delay(1000);
-    
-    for(int i=0; i<numBits; i++){
-      pulseOutB();  
-      delay(100);
-    }
-    
     // ESL free-field measurement protocol
     //delay(5000);
      
