@@ -1,6 +1,16 @@
 // OpenTag Ping 
 // 
 
+// Good frequency output determined empirically with prescaler=1 (4 MHz)
+// OCR2A 28 -> 113 kHz
+// OCR2A 50 -> 76 kHz
+// OCR2A 52 -> 74 kHz
+// OCR2A 54 -> 71 kHz
+// OCR2A 57 -> 67 kHz
+// OCR2A 60 -> 64 kHz
+// OCR2A 62 -> 62 kHz
+// OCR2A 102 -> 38 kHz (a little spiky)
+
 #include <SPI.h>    // arduino pro/pro mini, AtMega 3.3V 8 MHz
 #include <avr/io.h>
 #include <avr/sleep.h>
@@ -12,7 +22,7 @@
 // Transmission settings
 //boolean tagID[32] = {0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
 //boolean tagID[16] = {0,0,1,0,0,0,1,0, 0,0,0,0,0,0,0,0};
-boolean tagID[8] = {0,1,0,1,0,1,0,1};
+boolean tagID[8] = {1,0,1,0,1,0,1,0};
 //boolean tagID[4] = {0,1,0,1};
 //boolean tagID[1] = {0};
 uint8_t pulse = 0; // index into tagID - we can also use register counting with timer1 and pin5: https://forum.arduino.cc/index.php?topic=494744.0
@@ -59,8 +69,8 @@ int16_t accel[bufLength]; // hold up to this many samples
 
 
 void setup() {
-  delay(10000);
-  //setClockPrescaler(1); //slow down clock to run at 1.8V; makes 4 MHz clock
+  delay(2000);
+  setClockPrescaler(1); //slow down clock to run at 1.8V; makes 4 MHz clock
   pinMode(PWMPIN, OUTPUT); // output pin for OCR2B
   pinMode(LED, OUTPUT);
   digitalWrite(LED, HIGH);
@@ -115,19 +125,13 @@ void loop() {
   // Regular transmissions
   pulsePattern(1);
 
-  delay(500);
-  digitalWrite(LED, HIGH);
-  delay(200);
-  digitalWrite(LED, LOW);
-  delay(200);
-  digitalWrite(LED, HIGH);
-  delay(200);
-  digitalWrite(LED, LOW);
-  delay(200);
-  digitalWrite(LED, HIGH);
-  delay(200);
-  digitalWrite(LED, LOW);
-
+  delay(100);
+  for(int i=0; i<5; i++){
+      digitalWrite(LED, HIGH);
+      delay(200);
+      digitalWrite(LED, LOW);
+      delay(200);
+  }
   
 
      
@@ -249,10 +253,10 @@ ISR(TIMER1_COMPA_vect){
   
   // FSK mode: Bit determines PWM2 pulse rate - OCR2A controls PWM period
   if(tagID[pulse]==0){
-    OCR2A = 72; // 44=178 kHz (frequency, kHz = 1/ ( [OCR2A+1]/clock_speed) )
+    OCR2A = 50; // (frequency, kHz = 1/ ( [OCR2A+1]/clock_speed) )
   }
   else {
-    OCR2A = 46; // 46=170 kHz
+    OCR2A = 62; //
   }
   
   // Initialize if this is first pulse
