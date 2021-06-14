@@ -262,7 +262,7 @@ ISR(TIMER1_COMPA_vect){
   // Initialize if this is first pulse
   if (pulse==0){
     TCCR2A = _BV(COM2B1) | _BV(WGM21) | _BV(WGM20);
-    OCR2B = 22;   // PWM high length
+    OCR2B = 44;   // PWM high length
     TCCR2B = _BV(WGM22) | _BV(CS20);  // start Fast PWM; no prescaler
   }
   
