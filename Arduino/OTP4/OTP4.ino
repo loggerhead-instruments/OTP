@@ -1,6 +1,15 @@
 // OpenTag Ping 
 // 
 
+// Fuses
+// Extended: FF
+// High: D9
+// Low: E2
+
+// baseline current no transmission: 295 uA
+// baseline current  (transmitting single pulse): 330 uA
+// 256 ms for pulse, 1.87 mA
+
 // Good frequency output determined empirically with prescaler=1 (4 MHz)
 // OCR2A 28 -> 113 kHz
 // OCR2A 50 -> 76 kHz
