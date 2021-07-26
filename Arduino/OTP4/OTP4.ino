@@ -175,7 +175,8 @@ void processBuf(){
     lis2SpiFifoRead(bufLength);  //samples to read
     if(detectSound()){ 
       digitalWrite(LED, HIGH);
-      pulsePattern(1);      
+      pulsePattern(1); 
+      delay(100);     
     }  
     else{
     // ping after bufCounter buffers
