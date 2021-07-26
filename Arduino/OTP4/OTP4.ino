@@ -112,7 +112,7 @@ void setup() {
 
 
 void loop() {
-  //processBuf(); // process buffer first to empty FIFO so don't miss watermark
+  processBuf(); // process buffer first to empty FIFO so don't miss watermark
   //system_sleep();
 
   // Test sleep mode  
@@ -122,17 +122,17 @@ void loop() {
     // // supposed to sleep here // //
 
 
-  // Regular transmissions
-  pulsePattern(1);
-
-  delay(100);
-  for(int i=0; i<5; i++){
-      digitalWrite(LED, HIGH);
-      delay(200);
-      digitalWrite(LED, LOW);
-      delay(200);
-  }
-  
+//  // Regular transmissions
+//  pulsePattern(1);
+//
+//  delay(100);
+//  for(int i=0; i<5; i++){
+//      digitalWrite(LED, HIGH);
+//      delay(200);
+//      digitalWrite(LED, LOW);
+//      delay(200);
+//  }
+//  
 
      
   // 2: FSK
@@ -174,6 +174,7 @@ void processBuf(){
     
     lis2SpiFifoRead(bufLength);  //samples to read
     if(detectSound()){ 
+      digitalWrite(LED, HIGH);
       pulsePattern(1);      
     }  
     else{
@@ -182,6 +183,7 @@ void processBuf(){
       digitalWrite(LED, HIGH);
       pulsePattern(0);  // pulse pattern when sound not detected
       bufCounter = 0;
+      delay(100);
       }
     }
   }
@@ -225,6 +227,8 @@ void pulsePattern(boolean soundFlag){
 
   // initialize PWM
   TCCR2B = 0; // turn off
+
+  tagID[0] = soundFlag;
  
   // Start Timer 1 interrupt that will control changing of frequency or phase of each pulse in ping
   TCCR1A = 0;
