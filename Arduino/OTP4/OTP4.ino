@@ -126,7 +126,7 @@ void loop() {
 
   // Test sleep mode  
   wdt_reset(); // reset watchdog timer (will wake up system after 8s)
-  system_sleep(); // Sleep doesn't seem to be working
+  system_sleep();
 
     // // supposed to sleep here // //
 
