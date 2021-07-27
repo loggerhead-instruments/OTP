@@ -10,17 +10,7 @@
 // baseline current  (transmitting single pulse): 330 uA
 // 256 ms for pulse, 1.87 mA
 
-// Good frequency output determined empirically with prescaler=1 (4 MHz)
-// OCR2A 28 -> 113 kHz
-// OCR2A 50 -> 76 kHz
-// OCR2A 52 -> 74 kHz
-// OCR2A 54 -> 71 kHz
-// OCR2A 57 -> 67 kHz
-// OCR2A 60 -> 64 kHz
-// OCR2A 62 -> 62 kHz
-// OCR2A 102 -> 38 kHz (a little spiky)
-
-#include <SPI.h>    // arduino pro/pro mini, AtMega 3.3V 8 MHz
+#include <SPI.h>    // arduino pro/pro mini, AtMega328p 3.3V 8 MHz
 #include <avr/io.h>
 #include <avr/sleep.h>
 #include <avr/power.h>
@@ -45,6 +35,11 @@ boolean tagID[8] = {1,1,1,1,0,0,0,0};  // tag 1
 uint8_t pulse = 0; // index into tagID - we can also use register counting with timer1 and pin5: https://forum.arduino.cc/index.php?topic=494744.0
 
 // Detector settings
+#define DET_THRESHOLD 622 // Detection threshold - 19[mg]/0.061 [mg/sample]
+#define DET_CRIT 6        // Critical number of detected blocks
+#define DET_BLOCK 8      // Number of accelerometer samples per block
+
+// OLD DETECTOR SETTINGS - TO DELETE
 int16_t threshold = 100; // threshold for detecting signal
 uint16_t thresholdCount = 100; // n values need to exceed threshold in one buffer to trigger
 uint16_t bufCounter = 0; // counter for number of buffers processed. Used to control signal of tagID regardless of whether sound detected
@@ -190,7 +185,8 @@ void processBuf(){
     bufCounter++;
     
     lis2SpiFifoRead(bufLength);  //samples to read
-    if(detectSound()){ 
+    //if(detectSound()){ 
+    if(detectVocs()){ 
       digitalWrite(LED, HIGH);
       pulsePattern(1); 
       delay(100);     
@@ -208,9 +204,43 @@ void processBuf(){
   digitalWrite(LED, LOW);
 }
 
-
 // simple algorithm to detect whether buffer contains sound
 int diffData;
+
+boolean detectVocs() {
+  
+  // Create variables for detector
+  int dt = 0; 
+  boolean blockdone = 0;
+  int blockrem = 0;
+
+  // Go through sequence
+  for (int i=1; i<bufLength; i++){
+    blockrem = i%DET_BLOCK; // calculate how far from new block
+    if ( blockrem == 0) {
+      blockdone=0; // initialize new block
+    } 
+    
+    // check if detected
+    if (blockdone==0) {
+      // Calculate differential acceleration
+      diffData = accel[i] - accel[i-1];      
+      if (abs(diffData)>DET_THRESHOLD) {
+        dt++;
+        blockdone=1; // only count one detection per block
+      }
+    }
+
+  }
+ 
+  if (dt>DET_CRIT) {
+    // Found a call!
+    return 1;
+  }
+  else { 
+    return 0;
+  }
+}
 
 boolean detectSound(){
   // High-pass filter options:
