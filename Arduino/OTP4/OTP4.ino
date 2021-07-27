@@ -31,7 +31,15 @@
 // Transmission settings
 //boolean tagID[32] = {0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
 //boolean tagID[16] = {0,0,1,0,0,0,1,0, 0,0,0,0,0,0,0,0};
-boolean tagID[8] = {1,0,1,0,1,0,1,0};
+boolean tagID[8] = {1,1,1,1,0,0,0,0};  // tag 1
+// boolean tagID[8] = {0,0,0,0,1,1,1,1};  // tag 2
+//
+//boolean tagID[8] = {1,1,1,1,1,1,1,1};  // tag 3
+//boolean tagID[8] = {0,0,0,0,0,0,0,0};  // tag 4
+//
+//boolean tagID[8] = {1,0,0,1,1,1,0,0};  // tag 5
+//boolean tagID[8] = {1,1,1,0,0,0,1,1};  // tag 6
+
 //boolean tagID[4] = {0,1,0,1};
 //boolean tagID[1] = {0};
 uint8_t pulse = 0; // index into tagID - we can also use register counting with timer1 and pin5: https://forum.arduino.cc/index.php?topic=494744.0
@@ -189,7 +197,7 @@ void processBuf(){
     }  
     else{
     // ping after bufCounter buffers
-    if(bufCounter>30){
+    if(bufCounter>120){
       digitalWrite(LED, HIGH);
       pulsePattern(0);  // pulse pattern when sound not detected
       bufCounter = 0;
@@ -244,7 +252,7 @@ void pulsePattern(boolean soundFlag){
   TCCR1A = 0;
   TCCR1B = 0;
   TCNT1 = 0;
-  OCR1A = 1700;  //449 compare match register - OCR1A = 40 [cycles per bit] x (44+1) [ticks per cycle] - 1 = 1799 [for some reason, seems to be off by x2]
+  OCR1A = 1799;  //449 compare match register - OCR1A = 40 [cycles per bit] x (44+1) [ticks per cycle] - 1 = 1799 [for some reason, seems to be off by x2]
   TCCR1B |= (1 << WGM12); // CTC Mode
   TCCR1B |= (1 << CS10); //  no prescaler - 16-bit counter can accomodate up to 1400 cycles per bit...
   TIMSK1 |= (1 << OCIE1A); // enable timer compare interrupt
@@ -267,10 +275,10 @@ ISR(TIMER1_COMPA_vect){
   
   // FSK mode: Bit determines PWM2 pulse rate - OCR2A controls PWM period
   if(tagID[pulse]==0){
-    OCR2A = 50; // (frequency, kHz = 1/ ( [OCR2A+1]/clock_speed) )
+    OCR2A = 23; // 166.667 kHz (frequency, kHz = 1/ ( [OCR2A+1]/clock_speed) )
   }
   else {
-    OCR2A = 62; //
+    OCR2A = 24; // 160 kHz
   }
   
   // Initialize if this is first pulse
