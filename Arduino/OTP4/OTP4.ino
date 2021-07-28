@@ -291,6 +291,10 @@ void pulsePattern(boolean soundFlag){
   
 }
 
+// Fast PWM Mode with OCRA top
+// OCR2A value is the top value of the timer. So, it counts sawtooth 0 to OCR2A, 0-OCR2A, 0-OCR2A
+// OCR2B value goes high until counter reaches the OCR2B value
+
 // Ping generation for FSK mode
 ISR(TIMER1_COMPA_vect){
 
