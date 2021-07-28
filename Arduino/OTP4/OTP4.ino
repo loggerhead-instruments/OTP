@@ -291,6 +291,7 @@ void pulsePattern(boolean soundFlag){
   
 }
 
+// Ping generation for FSK mode
 ISR(TIMER1_COMPA_vect){
 
   // check if time to turn off
@@ -313,9 +314,9 @@ ISR(TIMER1_COMPA_vect){
   
   // Initialize if this is first pulse
   if (pulse==0){
+    OCR2B = 18;   // PWM high length, set to half of OCR2A (round down)
     TCCR2A = _BV(COM2B1) | _BV(WGM21) | _BV(WGM20);
-    OCR2B = 44;   // PWM high length
-    TCCR2B = _BV(WGM22) | _BV(CS20);  // start Fast PWM; no prescaler
+    TCCR2B = _BV(WGM22) | _BV(CS20);  // start Fast PWM (WGM22, WGM21, WGM20 all 1); no prescaler
   }
   
   pulse++;
