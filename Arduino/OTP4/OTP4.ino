@@ -21,11 +21,11 @@
 // Transmission settings
 //boolean tagID[32] = {0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
 //boolean tagID[16] = {0,0,1,0,0,0,1,0, 0,0,0,0,0,0,0,0};
-boolean tagID[8] = {1,1,1,1,0,0,0,0};  // tag 1
+// boolean tagID[8] = {1,1,1,1,0,0,0,0};  // tag 1
 // boolean tagID[8] = {0,0,0,0,1,1,1,1};  // tag 2
 //
-//boolean tagID[8] = {1,1,1,1,1,1,1,1};  // tag 3
-//boolean tagID[8] = {0,0,0,0,0,0,0,0};  // tag 4
+ boolean tagID[8] = {1,1,1,1,1,1,1,1};  // tag 3
+// boolean tagID[8] = {0,0,0,0,0,0,0,0};  // tag 4
 //
 //boolean tagID[8] = {1,0,0,1,1,1,0,0};  // tag 5
 //boolean tagID[8] = {1,1,1,0,0,0,1,1};  // tag 6
@@ -36,7 +36,7 @@ uint8_t pulse = 0; // index into tagID - we can also use register counting with 
 
 // Detector settings
 #define DET_THRESHOLD 622 // Detection threshold - 19[mg]/0.061 [mg/sample]
-#define DET_CRIT 6        // Critical number of detected blocks
+#define DET_CRIT 10        // Critical number of detected blocks
 #define DET_BLOCK 8      // Number of accelerometer samples per block
 
 // OLD DETECTOR SETTINGS - TO DELETE
@@ -313,7 +313,7 @@ ISR(TIMER1_COMPA_vect){
     OCR2A = 23; // 166.667 kHz (frequency, kHz = 1/ ( [OCR2A+1]/clock_speed) )
   }
   else {
-    OCR2A = 24; // 160 kHz
+    OCR2A = 25; // 24 = 160 kHz
   }
   
   // Initialize if this is first pulse
