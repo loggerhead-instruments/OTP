@@ -142,34 +142,33 @@ void loop() {
 
      
   // 2: FSK
-//  for (int j=0; j<50; j++){
-//      
-//    //tagID = {0,0,0,0,0,0,0,0};
-//    for (int j1=8; j1<16; j1++){
-//      tagID[j1] = 0;
-//    }
-//    
-//    digitalWrite(LED, HIGH);
-//    pulsePattern(1);
-//    delay(200);
-//    digitalWrite(LED, LOW);
-//
-//    //tagID = {0,0,0,0,1,1,1,1};
-//    for (int j1=12; j1<16; j1++){
-//      tagID[j1] = 1;
-//    } 
-//    pulsePattern(1);
-//    delay(200);
-//
-//    //tagID = {1,0,1,0,1,1,1,1};
-//    tagID[8] = 1;
-//    tagID[10] = 1;
-//    pulsePattern(1);
-//    delay(300);
-//
-//    // Reset watchdog timer
-//    wdt_reset();
-//  }
+  for (int j=0; j<50; j++){
+      
+    //tagID = {X,0,0,0,0,0,0,0};
+    for (int j1=0; j1<8; j1++){
+      tagID[j1] = 0;
+    }
+    
+    digitalWrite(LED, HIGH);
+    pulsePattern(1);
+    delay(200);
+    digitalWrite(LED, LOW);
+
+    //tagID = {X,0,0,0,1,1,1,1};
+    for (int j1=4; j1<8; j1++){
+      tagID[j1] = 1;
+    } 
+    pulsePattern(1);
+    delay(200);
+
+    //tagID = {X,0,1,0,1,1,1,1};
+    tagID[2] = 1;
+    pulsePattern(1);
+    delay(300);
+
+    // Reset watchdog timer
+    wdt_reset();
+  }
 
 }
 
