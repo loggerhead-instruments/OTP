@@ -140,7 +140,7 @@ ClassGenCCAutoRoomEnabled=1
 ClassGenNCAutoScope=None
 DItemRevisionGUID=
 GenerateClassCluster=0
-DocumentUniqueId=
+DocumentUniqueId=PGFDHAAT
 
 [Document7]
 DocumentPath=OTP5.SchDoc
@@ -149,7 +149,7 @@ AnnotateStartValue=1
 AnnotationIndexControlEnabled=0
 AnnotateSuffix=
 AnnotateScope=All
-AnnotateOrder=-1
+AnnotateOrder=0
 DoLibraryUpdate=1
 DoDatabaseUpdate=1
 ClassGenCCAutoEnabled=1
@@ -158,6 +158,10 @@ ClassGenNCAutoScope=None
 DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=OQGQTATE
+
+[GeneratedDocument1]
+DocumentPath=Project Outputs for OTP5\Design Rule Check - OTP5.html
+DItemRevisionGUID=
 
 [Configuration1]
 Name=Default Configuration
