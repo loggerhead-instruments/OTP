@@ -1,0 +1,10 @@
+Board Information Report
+Filename     : C:\w\OTP\Altium\OTP4\OTP4.PcbDoc
+Date         : 9/7/2021
+Time         : 1:33:23 PM
+Time Elapsed : 00:00:00
+
+General
+    Board Size, 2025milsx365mils
+    Components on board, 24
+count : 2
