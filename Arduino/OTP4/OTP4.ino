@@ -18,26 +18,20 @@
 #include <prescaler.h>
 #include <avr/wdt.h>
 
-// Transmission settings
-//boolean tagID[32] = {0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
-//boolean tagID[16] = {0,0,1,0,0,0,1,0, 0,0,0,0,0,0,0,0};
+// ID Codes
 // boolean tagID[8] = {1,1,1,1,0,0,0,0};  // tag 1
-// boolean tagID[8] = {0,0,0,0,1,1,1,1};  // tag 2
-//
- boolean tagID[8] = {1,1,1,1,1,1,1,1};  // tag 3
+boolean tagID[8] = {0,0,0,0,1,1,1,1};  // tag 2
+// boolean tagID[8] = {1,1,1,1,1,1,1,1};  // tag 3
 // boolean tagID[8] = {0,0,0,0,0,0,0,0};  // tag 4
-//
-//boolean tagID[8] = {1,0,0,1,1,1,0,0};  // tag 5
-//boolean tagID[8] = {1,1,1,0,0,0,1,1};  // tag 6
+// boolean tagID[8] = {1,0,0,1,1,1,0,0};  // tag 5
+// boolean tagID[8] = {1,1,1,0,0,0,1,1};  // tag 6
 
-//boolean tagID[4] = {0,1,0,1};
-//boolean tagID[1] = {0};
 uint8_t pulse = 0; // index into tagID - we can also use register counting with timer1 and pin5: https://forum.arduino.cc/index.php?topic=494744.0
 
 // Detector settings
-#define DET_THRESHOLD 622 // Detection threshold - 19[mg]/0.061 [mg/sample]
-#define DET_CRIT 10        // Critical number of detected blocks
-#define DET_BLOCK 8      // Number of accelerometer samples per block
+#define DET_THRESHOLD 450 // Detection threshold - 110 [mg] / 0.2441 [mg/sample]
+#define DET_CRIT 8        // Critical number of detected blocks
+#define DET_BLOCK 8       // Number of accelerometer samples per block
 
 // OLD DETECTOR SETTINGS - TO DELETE
 int16_t threshold = 100; // threshold for detecting signal
@@ -113,7 +107,7 @@ void setup() {
   digitalWrite(LED, LOW);
   wdt_reset();  
 
-  // LED sequence for successful start: 3 medium, 1 long flash
+  // LED sequence for successful start: 3 medium flash
   for(int i=0; i<3; i++) {
     delay(300);
     digitalWrite(LED, HIGH);
@@ -124,14 +118,14 @@ void setup() {
 
 
 void loop() {
+  // Process accelerometer data and look for calls
   processBuf(); // process buffer first to empty FIFO so don't miss watermark
-  //system_sleep();
 
-  // Test sleep mode  
+  // Go to sleep
   wdt_reset(); // reset watchdog timer (will wake up system after 8s)
   system_sleep();
 
-    // // supposed to sleep here // //
+    // // supposed to sleep here, then end loop // //
 
 
 //  // Regular transmissions
