@@ -1,0 +1,108 @@
+#
+#Component attribute names
+#
+@0 .comp_mount_type
+@1 .comp_height
+
+# CMP 0
+CMP 2 0.5427279 -0.1498768 0 N R3 330 ;0=1,1=0.0157
+PRP Code_IPC '1005 [0402]'
+PRP ComponentLink1Description 'Manufacturer Link'
+PRP ComponentLink1URL 'http://www.panasonic.com/industrial/components/resistive_products.htm'
+PRP ComponentLink2Description 'Datasheet'
+PRP ComponentLink2URL 'http://www.panasonic.com/industrial/components/pdf/AOA0000CE2.pdf'
+PRP LatestRevisionDate '19-Mar-2004'
+PRP LatestRevisionNote 'Silkscreen size reduced.'
+PRP PackageDocument 'Mar-2003'
+PRP PackageReference '2-0402'
+PRP Published '17-Dec-2003'
+PRP Publisher 'Altium Limited'
+TOP 0 0.5683184 -0.1498768 270 N 8 1 R3-1
+TOP 1 0.5171373 -0.1498768 270 N 12 0 R3-2
+#
+# CMP 1
+CMP 12 0.5346252 -0.0728918 180 N Q1 PMF250XN,115 ;0=1,1=0.0433
+PRP Channel_Type 'N'
+PRP Ciss_[typ]_(pF) '50'
+PRP Code_JEITA 'SC-70'
+PRP ComponentLink1Description 'Manufacturer URL'
+PRP ComponentLink1URL 'http://www.nxp.com/'
+PRP ComponentLink2Description 'Datasheet'
+PRP ComponentLink2URL 'http://www.nxp.com/documents/data_sheet/PMF250XN.pdf'
+PRP ComponentLink3Description 'Package Specification'
+PRP ComponentLink3URL 'http://www.nxp.com/documents/outline_drawing/sot323_po.pdf'
+PRP Coss_[typ]_(pF) '10'
+PRP DatasheetVersion 'Rev. 1'
+PRP ID_[max]_(A) '0.9'
+PRP Manufacturer 'NXP Semiconductors'
+PRP Mounting_Technology 'Surface Mount'
+PRP PackageDescription '3-Pin Small Outline Transistor Package, Body 2 x 1.25 mm, Pitch 0.65 mm'
+PRP PackageReference 'SOT323'
+PRP PackageVersion '06-03-16, 03/2006'
+PRP Packing 'Tape & Reel'
+PRP PartNumber 'PMF250XN,115'
+PRP Supplier_1 'Digi-Key'
+PRP Supplier_2 'Digi-Key'
+PRP Supplier_3 'Digi-Key'
+PRP Supplier_4 'Mouser'
+PRP Supplier_Part_Number_1 '568-10784-2-ND'
+PRP Supplier_Part_Number_2 '568-10784-1-ND'
+PRP Supplier_Part_Number_3 '568-10784-6-ND'
+PRP Supplier_Part_Number_4 '771-PMF250XN,115'
+PRP VDS_[max]_(V) '30'
+PRP VGSth_[typ]_(V) '1'
+TOP 0 0.4982079 -0.0984824 90 N 4 0 Q1-1
+TOP 1 0.4982079 -0.0473013 90 N 16 0 Q1-2
+TOP 2 0.5710425 -0.0728918 90 N 5 0 Q1-3
+#
+# CMP 2
+CMP 14 0.6645047 -0.2607536 0 N P2 PIEZO ;0=1,1=0.0000
+TOP 0 0.6645047 -0.2607536 180 N 15 3 P2-1
+TOP 1 0.6645047 -0.1032733 180 N 5 2 P2-2
+#
+# CMP 3
+CMP 9 0.4257305 -0.1442344 180 N L4 27uH ;0=1,1=0.0000
+PRP Supplier_1 'Mouser'
+PRP Supplier_Part_Number_1 '810-MLZ2012M220WT000'
+TOP 0 0.3902975 -0.1442344 0 N 7 0 L4-1
+TOP 1 0.4611636 -0.1442344 0 N 5 1 L4-2
+#
+# CMP 4
+CMP 10 0.3513105 -0.0622392 180 N L1 100uH ;0=1,1=0.0000
+PRP Supplier_1 'Mouser'
+PRP Supplier_Part_Number_1 '810-NLV32T-391J-EF'
+TOP 0 0.2883184 -0.0622392 0 N 15 1 L1-1
+TOP 1 0.4143027 -0.0622392 0 N 7 1 L1-2
+#
+# CMP 5
+CMP 5 0.2159685 -0.1206256 270 N D3 Shottky ;0=1,1=0.0000
+PRP Supplier_1 'Digi-Key'
+PRP Supplier_Part_Number_1 'DFLS130LDITR-ND'
+TOP 0 0.2159685 -0.0556649 270 N 20 0 D3-A
+TOP 1 0.2159685 -0.1560586 270 N 15 0 D3-K
+#
+# CMP 6
+CMP 6 0.6522091 -0.1536692 180 N D1 LED_0603 ;0=1,1=0.0000
+TOP 0 0.6197288 -0.1536692 0 N 8 0 D1-A
+TOP 1 0.6846894 -0.1536692 0 N 16 1 D1-K
+#
+# CMP 7
+CMP 16 0.2956849 -0.1634128 270 N C7 47uF ;0=1,1=0.0000
+PRP Value '10uF'
+TOP 0 0.2956849 -0.1899128 270 N 16 2 C7-1
+TOP 1 0.2956849 -0.1369128 270 N 15 2 C7-2
+#
+# CMP 8
+CMP 8 0.1546285 -0.0856676 270 N L3 47uH ;0=1,1=0.0000
+PRP Supplier_1 'Mouser'
+PRP Supplier_Part_Number_1 '810-KLZ1608AHR2R2WTD'
+TOP 0 0.1546285 -0.1132266 270 N 19 0 L3-1
+TOP 1 0.1546285 -0.0581085 270 N 20 1 L3-2
+#
+# CMP 9
+CMP 15 0.0810127 -0.1955144 270 N S1 Reed_MK24 ;0=1,1=0.0709
+PRP Supplier_1 'Digi-Key'
+PRP Supplier_Part_Number_1 '374-1075-2-ND'
+TOP 0 0.0810127 -0.2781916 0 N 1 0 S1-1
+TOP 1 0.0810127 -0.1128373 0 N 19 1 S1-2
+#

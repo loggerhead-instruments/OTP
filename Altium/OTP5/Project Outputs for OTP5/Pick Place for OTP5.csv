@@ -1,0 +1,35 @@
+Altium Designer Pick and Place Locations,,,,,,,
+C:\w\OTP\Altium\OTP5\Project Outputs for OTP5\Pick Place for OTP5.csv,,,,,,,
+,,,,,,,
+========================================================================================================================,,,,,,,
+File Design Information:,,,,,,,
+,,,,,,,
+Date:       20/09/21,,,,,,,
+Time:       10:08,,,,,,,
+Revision:   1608178573f06b2ea82edb9f2b02704647acad1c,,,,,,,
+Variant:    No variations,,,,,,,
+Units used: mm,,,,,,,
+,,,,,,,
+Designator,Comment,Layer,Footprint,Center-X(mm),Center-Y(mm),Rotation,Description
+R3,330,BottomLayer,2-0402,29.7442,-2.7186,180,"Precision Thick Film Chip Resistor, 10 Ohm to 1M Ohm Range, 1% and 0.5% Tolerance, 0402 Size, 0.063 W"
+L2,2.2uH,TopLayer,Inductor_KLZ1608AHR,21.7623,-1.8545,90,
+U3,LIS2DS12,TopLayer,LGA-12,23.9069,-5.7328,180,
+U2,TPS62740,TopLayer,TPS6274x,24.1958,-1.8545,0,
+U1,ATmega8-16AC,TopLayer,32M1-A_M,30.951,-3.3619,270,8-Bit AVR Microcontroller with 8K Bytes of In-System Programmable Flash Memory
+R2,omit,TopLayer,3-0603,13.438,-4.1513,90,"Precision Thick Film Chip Resistor, 10 Ohm to 1M Ohm Range, 1% and 0.5% Tolerance, 0603 Size, 0.063 W"
+R1,10k,TopLayer,2-0402,17.9062,-7.1063,0,"Precision Thick Film Chip Resistor, 10 Ohm to 1M Ohm Range, 1% and 0.5% Tolerance, 0402 Size, 0.063 W"
+Q1,"PMF250XN,115",BottomLayer,NXP-SOT323_N,29.5384,-0.7631,0,"N-Channel Trench MOSFET, 30 V, 0.9 A, -55 to 150 degC, 3-Pin SOT323, Tape and Reel"
+P2,PIEZO,BottomLayer,PIEZO,32.8373,-3.5348,180,
+L4,27uH,BottomLayer,Inductor_MLZ2012M220WT000,26.7724,-2.5752,0,
+L1,100uH,BottomLayer,Inductor_NLV32T,24.8822,-0.4926,0,
+D3,Shottky,BottomLayer,DFLS130,21.4445,-1.6006,90,
+D1,LED_0603,BottomLayer,Diode0603,32.525,-2.8149,0,
+C7,47uF,BottomLayer,Tant0805,23.4693,-3.0624,90,
+C6,100nF,TopLayer,402,20.6528,-6.9869,180,Ceramic Chip Capacitor - Standard
+C5,10uF,TopLayer,Tant0805,20.5639,-4.3625,0,
+C4,100nF,TopLayer,402,20.5246,-5.7086,180,Ceramic Chip Capacitor - Standard
+C3,0.1uF,TopLayer,402,30.8966,-7.037,0,Ceramic Chip Capacitor - Standard
+C2,C0603,TopLayer,603,20.3045,-1.6414,270,Ceramic Chip Capacitor - Standard
+C1,C0603,TopLayer,603,26.6069,-1.7199,270,Ceramic Chip Capacitor - Standard
+L3,47uH,BottomLayer,Inductor_KLZ1608AHR,19.8865,-1.0876,90,
+S1,Reed_MK24,BottomLayer,Reed_MK24-B-3,18.0166,-3.8778,90,

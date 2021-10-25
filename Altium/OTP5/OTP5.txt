@@ -1,10 +1,10 @@
 Board Information Report
 Filename     : C:\w\OTP\Altium\OTP5\OTP5.PcbDoc
-Date         : 9/7/2021
-Time         : 3:15:38 PM
+Date         : 9/13/2021
+Time         : 2:28:30 PM
 Time Elapsed : 00:00:00
 
 General
-    Board Size, 36.2358mmx9.2674mm
+    Board Size, 1426.606milsx364.858mils
     Components on board, 24
 count : 2
