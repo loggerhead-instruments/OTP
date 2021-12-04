@@ -1,0 +1,10 @@
+Board Information Report
+Filename     : C:\w\OTP\Altium\OTP6\OTP6.PcbDoc
+Date         : 12/4/2021
+Time         : 11:19:49 AM
+Time Elapsed : 00:00:00
+
+General
+    Board Size, 16.5mmx30.6763mm
+    Components on board, 29
+count : 2

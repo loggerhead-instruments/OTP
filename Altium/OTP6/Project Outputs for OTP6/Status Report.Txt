@@ -1,0 +1,12 @@
+Output: NC Drill Files
+Type  : NC Drill
+From  : Project [OTP6.PrjPCB]
+   Generated File[OTP6.TXT]
+   Generated File[OTP6.LDP]
+   Generated File[OTP6.DRR]
+
+
+Files Generated   : 3
+Documents Printed : 0
+
+Finished Output Generation At 11:41:20 AM On 12/4/2021
