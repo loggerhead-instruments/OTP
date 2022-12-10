@@ -14,7 +14,12 @@ PCB files for OTP tags. Each PCB project will have a PDF document containing the
 6. OTP6: Design for custom piezoceramic where lithium battery can be placed inside piezo cylinder. Also adds pressure and depth sensor. Recommended.
 
 ## Arduino
-Arduino C code for programming OTP tags
+Arduino C code for programming OTP tags. 
+
+The accelerometer uses SPI for high speed data transfer to lower power consumption.
+The accelerometer can be configured for 3 channel operation or in a special magnitude mode where the magnitude of the 3 axes is calculated on the accelerometer. Magnitude mode reduces power consumption because it reduces how much time it takes to transmit and process the accelerometer data.
+
+OTP4 firmware works on OTP4 and OTP5
 
 ## SpecSheets
 The technical specification sheets for the components used in OTP tags
