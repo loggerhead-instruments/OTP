@@ -4,7 +4,8 @@ OTP is unique in that it incorporates an accelerometer that can be used
 to determine when an animal is vocalizing, which then triggers a coded acoustic pulse.
 
 ## Altium
-PCB files for OTP tags
+PCB files for OTP tags. Each PCB project will have a PDF document containing the schematic and PCB layout. The project outputs folder contain the Gerber files needed to have the PCB manufactured.
+
 1. OTP: Simple design with ATmega328p and LIS2DS12 accelerometer. Not recommended.
 2. OTP2: Improved transmitter circuit. Not recommended.
 3. OTP3: Transmitter diode changed. Not recommended.
